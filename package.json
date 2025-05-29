@@ -11,13 +11,16 @@
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
-    "express": "^5.1.0",
+    "axios": "^1.9.0",
     "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
     "http": "^0.0.1-security"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
     "@types/express": "^5.0.1",
+    "@types/express-session": "^1.18.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.17",
     "@typescript-eslint/eslint-plugin": "^8.32.0",

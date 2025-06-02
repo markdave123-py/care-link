@@ -1,8 +1,8 @@
 import * as express from "express";
-import session from 'express-session';
+import * as session from 'express-session';
 
 import { appRouter } from "./app.router";
-import { authRouter } from "./auth/routes/auth.routes";
+import authRouter from "./auth/routes/auth.routes";
 
 export const app = express();
 
@@ -15,4 +15,4 @@ app.use(session({
 }));
 
 app.use("/api/v1", appRouter);
-app.use("api/v1/auth", authRouter);
+app.use("/api/v1/auth", authRouter);

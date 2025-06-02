@@ -34,7 +34,3 @@ export interface AuthSession {
   token_expires_at?: number;
   oauth_state?: string;
 }
-
-// declare module 'express-session' {
-//   interface SessionData extends AuthSession {}
-// }

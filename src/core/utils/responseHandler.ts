@@ -1,7 +1,7 @@
-import { Response } from "express";
+import type { Response } from "express";
 
 export const responseHandler = {
-  success: (res: Response, statusCode: number, message: any) => {
+  success: <T>(res: Response, statusCode: number, message: T) => {
     res.status(statusCode).json({
       status: "success",
       message,
@@ -15,4 +15,3 @@ export const responseHandler = {
     });
   },
 };
-

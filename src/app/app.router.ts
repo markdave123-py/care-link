@@ -1,11 +1,9 @@
 import type { Request, Response } from "express";
 import { Router } from "express";
-
+import { HttpStatus } from "../core/utils/statusCodes";
+import { responseHandler } from "../core/utils/responseHandler";
 export const appRouter = Router();
 
 appRouter.get("/health", (_: Request, res: Response) => {
-  res.status(200).json({ // change tgo HTTP.OK
-    message: "App up",
-    version: "1.0",
-  });
+  return responseHandler.success(res, HttpStatus.OK, "Server is running");
 });

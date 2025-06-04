@@ -3,6 +3,33 @@ import { buildUrl } from "../utils/google";
 import { google } from "../config/oauth";
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI, GOOGLE_TOKEN_INFO_URL } from "../config/env";
 
+
+// class AuthController {
+//   static login = async (req: Request, res: Response) => {
+//     const { email, password } = req.body;
+
+
+//   }
+
+//   static register = async (req: Request, res: Response) => {
+
+//     const { username, email, password } = req.body;
+
+    
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
 export const initializeGoogleAuth = async (_: Request, res: Response) => {
 	const consent_screen = buildUrl(google);
 	res.redirect(consent_screen);

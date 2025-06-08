@@ -1,10 +1,16 @@
-import { PrismaClient } from "@prisma/client";
-import { NODE_ENV } from "../config";
+import { PrismaClient } from '../../../generated/prisma';
+import { env } from "../config/env";
 
-const prisma = globalThis.prisma || new PrismaClient();
-
-if ( NODE_ENV !== "production" ) {
-    globalThis.prisma = prisma;
+// add prisma to the NodeJS global type
+interface CustomNodeJsGlobal extends Global {
+  prisma: PrismaClient;
 }
+
+// Prevent multiple instances of Prisma Client in development
+declare const global: CustomNodeJsGlobal;
+
+const prisma = global.prisma || new PrismaClient();
+
+if (env.NODE_ENV === 'development') global.prisma = prisma;
 
 export default prisma;

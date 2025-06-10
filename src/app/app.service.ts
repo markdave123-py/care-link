@@ -5,6 +5,7 @@ import *as morgan from "morgan";
 import { appRouter } from "./app.router";
 import authRouter from "../auth/routes/auth.routes";
 import userRouter from "../auth/routes/user.routes";
+import { ErrorMiddleware } from "../core";
 
 export const app = express();
 
@@ -18,3 +19,4 @@ app.use(cors({
 app.use("/api/v1", appRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
+app.use(ErrorMiddleware.handleError);

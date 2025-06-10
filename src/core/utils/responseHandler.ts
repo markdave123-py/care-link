@@ -1,6 +1,6 @@
 import type { Response } from "express";
 
-export const responseHandler = {
+const responseHandler = {
   success: <T>(res: Response, statusCode: number, message: T) => {
     res.status(statusCode).json({
       status: "success",
@@ -15,3 +15,5 @@ export const responseHandler = {
     });
   },
 };
+
+export default responseHandler;

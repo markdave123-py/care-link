@@ -1,16 +1,16 @@
-import { PrismaClient } from '../../../generated/prisma';
-import { env } from "../config/env";
+import { Sequelize } from 'sequelize';
+import { env } from '../config';
 
-// add prisma to the NodeJS global type
-interface CustomNodeJsGlobal extends Global {
-  prisma: PrismaClient;
-}
+const sequelize = new Sequelize(env.POSTGRES_URI);
 
-// Prevent multiple instances of Prisma Client in development
-declare const global: CustomNodeJsGlobal;
+const connecToDb = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Connection has been established successfully.');
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+  }
+};
+connecToDb();
 
-const prisma = global.prisma || new PrismaClient();
-
-if (env.NODE_ENV === 'development') global.prisma = prisma;
-
-export default prisma;
+export default sequelize;

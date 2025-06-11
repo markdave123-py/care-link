@@ -1,8 +1,8 @@
 import { createServer } from "http";
 
 import { app } from "./app.service";
-import sequelize from "src/auth/utils/db";
-import { associateModels } from "src/core/models/associationModels";
+import sequelize from "../auth/utils/db";
+import { associateModels } from "../core/models/associationModels";
 
 export const startApp = async () => {
   await sequelize.authenticate();
@@ -10,7 +10,7 @@ export const startApp = async () => {
 
   associateModels();
 
-  await sequelize.sync({ alter: true });
+  await sequelize.sync({ force: true });
   console.log("Models synced");
 
   const server = createServer(app);

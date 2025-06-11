@@ -1,16 +1,7 @@
 import { DataTypes, Model } from "sequelize";
-import sequelize from "src/auth/utils/db";
+import sequelize from "../../auth/utils/db";
 
-export class Patient extends Model {
-    declare id: string;
-    declare email: string;
-    declare email_verified: boolean;
-    declare firstname: string;
-    declare lastname: string;
-    declare password: string;
-    declare profile_picture: string;
-    declare refresh_token: string;
-}
+export class Patient extends Model {}
 
 Patient.init(
     {

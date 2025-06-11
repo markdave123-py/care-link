@@ -1,5 +1,5 @@
 import { DataTypes, Model } from "sequelize";
-import sequelize from "src/auth/utils/db";
+import sequelize from "../../auth/utils/db";
 
 export class Admin extends Model {}
 

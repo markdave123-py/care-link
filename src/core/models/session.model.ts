@@ -1,19 +1,7 @@
 import { DataTypes, Model } from "sequelize";
-import sequelize from "src/auth/utils/db";
+import sequelize from "../../auth/utils/db";
 
-export class Session extends Model {
-    declare id: number;
-    declare patient_id: number;
-    declare health_practitioner_id: number;
-    declare patient_symptoms: string;
-    declare request_session_id: string;
-    declare status: string; // Change back to enum
-    declare parentId: number;
-    declare health_practitioner_report: string;
-    declare diagnosis: string;
-    declare prescription: string;
-    declare rating: number;
-}
+export class Session extends Model {}
 
 Session.init(
     {
@@ -27,6 +15,9 @@ Session.init(
         },
         health_practitioner_id: {
             type: DataTypes.UUID,
+        },
+        patient_symptoms: {
+            type: DataTypes.TEXT,
         },
         request_session_id: {
             type: DataTypes.UUID,
@@ -44,8 +35,11 @@ Session.init(
         diagnosis: {
             type: DataTypes.TEXT,
         },
+        precription: {
+            type: DataTypes.TEXT,
+        },
         rating: {
-            type: DataTypes.NUMBER,
+            type: DataTypes.INTEGER,
         },
     },
     {

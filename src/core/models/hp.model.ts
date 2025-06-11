@@ -1,5 +1,5 @@
 import { DataTypes, Model } from "sequelize";
-import sequelize from "src/auth/utils/db";
+import sequelize from "../../auth/utils/db";
 
 export class HealthPractitioner extends Model {}
 
@@ -33,8 +33,8 @@ HealthPractitioner.init(
 		refresh_token: DataTypes.TEXT,
 		idcard: DataTypes.TEXT,
 		passport_url: DataTypes.TEXT, // Added myself
-		nin: DataTypes.NUMBER,
-		bvn: DataTypes.NUMBER,
+		nin: DataTypes.STRING,
+		bvn: DataTypes.STRING,
 		license_number: DataTypes.STRING, //Added myself
 		license_expiry_date: DataTypes.DATE, //Added myself
 		available_time: DataTypes.ARRAY(DataTypes.DATE),

@@ -4,6 +4,7 @@ import * as morgan from "morgan";
 import * as cookieParser from "cookie-parser";
 
 import { appRouter } from "./app.router";
+import patientRouter from "../auth/routes/auth.routes";
 // import authRouter from "../auth/routes/auth.routes";
 // import userRouter from "../auth/routes/user.routes";
 
@@ -18,5 +19,5 @@ app.use(cors({
 }))
 
 app.use("/api/v1", appRouter);
-// app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/auth", patientRouter);
 // app.use("/api/v1/user", userRouter);

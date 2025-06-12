@@ -1,11 +1,12 @@
-// import { Router } from "express";
-// import AuthController, { getToken, initializeGoogleAuth } from "../controllers/auth.controller";
+import { Router } from "express";
+import { getToken, initializeGoogleAuth } from "../controllers/patient.controller";
+import PatientController from "../controllers/patient.controller";
 
-// const authRouter = Router();
+const patientRouter = Router();
 
-// authRouter.get('/google', initializeGoogleAuth);
-// authRouter.get('/google/callback', getToken);
-// authRouter.post('/register', AuthController.register);
-// authRouter.post('/login', AuthController.login);
+patientRouter.get('/google', initializeGoogleAuth);
+patientRouter.get('/google/callback', getToken);
+patientRouter.post('/register', PatientController.register);
+patientRouter.post('/login', PatientController.login);
 
-// export default authRouter;
+export default patientRouter;

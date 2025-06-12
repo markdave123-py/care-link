@@ -1,8 +1,9 @@
 import { createServer } from "http";
 
 import { app } from "./app.service";
-import sequelize from "../auth/utils/db";
+import sequelize from "../core/config/db";
 import { associateModels } from "../core/models/associationModels";
+import "../core/models/admin.model";
 
 export const startApp = async () => {
   await sequelize.authenticate();

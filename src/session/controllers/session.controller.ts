@@ -1,4 +1,4 @@
-import { Request, Response } from "express"
+import type { Request, Response } from "express"
 import { responseHandler } from "../../core";
 import {Session} from "../../core";
 import { AppError } from "../../core";

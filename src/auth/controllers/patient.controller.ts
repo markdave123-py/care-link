@@ -140,7 +140,7 @@ class PatientController {
 		}
 		try {
 			const userId = req.userId;
-			const refreshToken = req.cookies.accessToken;
+			const refreshToken = req.cookies.refreshToken;
 
 			const user = await Patient.findOne({
 				where: { id: userId },
@@ -154,9 +154,11 @@ class PatientController {
 				return Send.unauthorized(res, { message: "Invalid Refresh Token" });
 			}
 
-			const newAccessToken = jwt.sign({ userId: user.id }, process.env.JWT_EXPIRES_IN, {
-				expiresIn: 15 * 60 * 1000,
-			});
+			const newAccessToken = jwt.sign(
+				{ userId: user.id },
+				process.env.JWT_EXPIRES_IN,
+				{ expiresIn: 15 * 60 * 1000, }
+			);
 
 			res.cookie("accessToken", newAccessToken, {
 				httpOnly: true,

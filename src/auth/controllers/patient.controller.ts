@@ -3,14 +3,20 @@ import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import { buildUrl } from "../utils/google";
 import { google } from "../config/oauth";
-import { env } from "../config/env";
 import Send from "../utils/response.utils";
 import type { AuthenticateRequest } from "../middlewares/auth.middleware";
 import { Patient } from "../../core";
+import { config } from "dotenv";
+
+config({ path: `.env.${process.env.NODE_ENV || 'development'}.local`})
 
 class PatientController {
 	static login = async (req: Request, res: Response) => {
 		const { email, password } = req.body;
+
+		if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_TOKEN_SECRET) {
+			throw new Error("Missing environment variable")
+		}
 
 		try {
 			const patient = await Patient.findOne({
@@ -25,13 +31,13 @@ class PatientController {
 				return Send.error(res, null, "Incorrect password");
 			}
 
-			const accessToken = jwt.sign({ userId: patient.id }, env.JWT_SECRET, {
+			const accessToken = jwt.sign({ userId: patient.id }, process.env.JWT_SECRET, {
 				expiresIn: "15m",
 			});
 
 			const refreshToken = jwt.sign(
 				{ userId: patient.id },
-				env.JWT_REFRESH_TOKEN_SECRET,
+				process.env.JWT_REFRESH_TOKEN_SECRET,
 				{ expiresIn: "1d" }
 			);
 
@@ -54,7 +60,7 @@ class PatientController {
 
 			return Send.success(res, {
 				id: patient.id,
-				username: patient.firstname,
+				firstname: patient.firstname,
 				email: patient.email,
 				createdAt: patient.createdAt,
 				UpdatedAt: patient.updatedAt,
@@ -129,6 +135,9 @@ class PatientController {
 	};
 
 	static refreshToken = async (req: AuthenticateRequest, res: Response) => {
+		if (!process.env.JWT_EXPIRES_IN) {
+			throw new Error("Missing environment variable")
+		}
 		try {
 			const userId = req.userId;
 			const refreshToken = req.cookies.accessToken;
@@ -145,13 +154,13 @@ class PatientController {
 				return Send.unauthorized(res, { message: "Invalid Refresh Token" });
 			}
 
-			const newAccessToken = jwt.sign({ userId: user.id }, env.JWT_EXPIRES_IN, {
+			const newAccessToken = jwt.sign({ userId: user.id }, process.env.JWT_EXPIRES_IN, {
 				expiresIn: 15 * 60 * 1000,
 			});
 
 			res.cookie("accessToken", newAccessToken, {
 				httpOnly: true,
-				secure: env.NODE_ENV === "production",
+				secure: process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
 				sameSite: "strict",
 			});
@@ -179,9 +188,9 @@ export const getToken = async (req: Request, res: Response): Promise<void> => {
 	const GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 
 	if (
-		!env.GOOGLE_CLIENT_ID ||
-		!env.GOOGLE_CLIENT_SECRET ||
-		!env.GOOGLE_REDIRECT_URI ||
+		!process.env.GOOGLE_CLIENT_ID ||
+		!process.env.GOOGLE_CLIENT_SECRET ||
+		!process.env.GOOGLE_REDIRECT_URI ||
 		!code
 	) {
 		res.status(400).json({ error: "Missing required OAuth parameters" });
@@ -195,11 +204,11 @@ export const getToken = async (req: Request, res: Response): Promise<void> => {
 				"Content-Type": "application/x-www-form-urlencoded",
 			},
 			body: new URLSearchParams({
-				client_id: env.GOOGLE_CLIENT_ID,
-				client_secret: env.GOOGLE_CLIENT_SECRET,
+				client_id: process.env.GOOGLE_CLIENT_ID,
+				client_secret: process.env.GOOGLE_CLIENT_SECRET,
 				code: code as string,
 				grant_type: "authorization_code",
-				redirect_uri: env.GOOGLE_REDIRECT_URI,
+				redirect_uri: process.env.GOOGLE_REDIRECT_URI,
 			}),
 		});
 
@@ -220,7 +229,7 @@ export const getToken = async (req: Request, res: Response): Promise<void> => {
 		const { id_token } = access_token_data;
 
 		const token_info_response = await fetch(
-			`${env.GOOGLE_TOKEN_INFO_URL}?id_token=${id_token}`
+			`${process.env.GOOGLE_TOKEN_INFO_URL}?id_token=${id_token}`
 		);
 
 		res.json({

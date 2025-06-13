@@ -1,0 +1,35 @@
+import { DataTypes, Model } from "sequelize";
+import type { CreationOptional, InferAttributes, InferCreationAttributes } from "sequelize";
+import sequelize from "../config/db";
+
+export class RequestSession extends Model<
+	InferAttributes<RequestSession>,
+	InferCreationAttributes<RequestSession>
+> {
+	declare id: CreationOptional<string>;
+	declare patient_id: CreationOptional<string>;
+	declare health_practitioner_id: CreationOptional<string>;
+	declare status: string;
+	declare patient_symptoms: string;
+	declare ongoing_medication: string;
+}
+
+RequestSession.init(
+	{
+		id: {
+			type: DataTypes.UUID,
+			defaultValue: DataTypes.UUIDV4,
+			primaryKey: true,
+		},
+		patient_id: DataTypes.UUID,
+		health_practitioner_id: DataTypes.UUID,
+		status: DataTypes.ENUM("pending", "accepted", "rejected", "cancelled"),
+		patient_symptoms: DataTypes.TEXT,
+		ongoing_medication: DataTypes.TEXT,
+	},
+	{
+		sequelize,
+		modelName: "RequestSession",
+		timestamps: true,
+	}
+);

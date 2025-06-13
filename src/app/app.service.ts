@@ -1,14 +1,19 @@
 import * as express from "express";
 import * as cors from "cors";
-import *as morgan from "morgan";
+import * as morgan from "morgan";
+import * as cookieParser from "cookie-parser";
 
 import { appRouter } from "./app.router";
-import authRouter from "../auth/routes/auth.routes";
-import userRouter from "../auth/routes/user.routes";
+import patientRouter from "../auth/routes/patient.routes";
+import hpRouter from "../auth/routes/hp.routes";
+import hptypeRouter from "../auth/routes/hptype.routes";
+// import authRouter from "../auth/routes/auth.routes";
+// import userRouter from "../auth/routes/user.routes";
 
 export const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(cors({
   origin: ['*'], //Allow all origin
@@ -16,5 +21,7 @@ app.use(cors({
 }))
 
 app.use("/api/v1", appRouter);
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/user", userRouter);
+app.use("/api/v1/auth/patient", patientRouter);
+app.use("/api/v1/auth/hp", hpRouter);
+app.use("/api/v1", hptypeRouter);
+// app.use("/api/v1/user", userRouter);

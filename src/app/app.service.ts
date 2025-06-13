@@ -4,7 +4,9 @@ import * as morgan from "morgan";
 import * as cookieParser from "cookie-parser";
 
 import { appRouter } from "./app.router";
-import patientRouter from "../auth/routes/auth.routes";
+import patientRouter from "../auth/routes/patient.routes";
+import hpRouter from "../auth/routes/hp.routes";
+import hptypeRouter from "../auth/routes/hptype.routes";
 // import authRouter from "../auth/routes/auth.routes";
 // import userRouter from "../auth/routes/user.routes";
 
@@ -19,5 +21,7 @@ app.use(cors({
 }))
 
 app.use("/api/v1", appRouter);
-app.use("/api/v1/auth", patientRouter);
+app.use("/api/v1/auth/patient", patientRouter);
+app.use("/api/v1/auth/hp", hpRouter);
+app.use("/api/v1", hptypeRouter);
 // app.use("/api/v1/user", userRouter);

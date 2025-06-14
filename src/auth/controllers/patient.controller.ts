@@ -1,39 +1,44 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import { buildUrl } from "../utils/google";
 import { google } from "../config/oauth";
 import Send from "../utils/response.utils";
 import type { AuthenticateRequest } from "../middlewares/auth.middleware";
-import { Patient } from "../../core";
+import { AppError, Patient } from "../../core";
 import { config } from "dotenv";
+import { CatchAsync } from "../../core";
 
-config({ path: `.env.${process.env.NODE_ENV || 'development'}.local`})
+config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 class PatientController {
-	static login = async (req: Request, res: Response) => {
-		const { email, password } = req.body;
+	static login = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const { email, password } = req.body;
 
-		if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_TOKEN_SECRET) {
-			throw new Error("Missing environment variable")
-		}
+			if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_TOKEN_SECRET) {
+				return next(new AppError("Missing environment variable", 500));
+			}
 
-		try {
 			const patient = await Patient.findOne({
 				where: { email },
 			});
 			if (!patient) {
-				return Send.error(res, null, "Invalid credentials");
+				return next(new AppError("Invalid credential", 404));
 			}
 
 			const isPasswordValid = await bcrypt.compare(password, patient.password);
 			if (!isPasswordValid) {
-				return Send.error(res, null, "Incorrect password");
+				return next(new AppError("Incorrect password", 401));
 			}
 
-			const accessToken = jwt.sign({ userId: patient.id }, process.env.JWT_SECRET, {
-				expiresIn: "15m",
-			});
+			const accessToken = jwt.sign(
+				{ userId: patient.id },
+				process.env.JWT_SECRET,
+				{
+					expiresIn: "15m",
+				}
+			);
 
 			const refreshToken = jwt.sign(
 				{ userId: patient.id },
@@ -65,78 +70,69 @@ class PatientController {
 				createdAt: patient.createdAt,
 				UpdatedAt: patient.updatedAt,
 			});
-		} catch (err) {
-			console.error("Error logging in: ", err);
-			return Send.error(res, null, "Error logging in");
 		}
-	};
+	);
 
-	static register = async (req: Request, res: Response) => {
-		const { firstname, lastname, email, password } = req.body;
+	static register = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const { firstname, lastname, email, password } = req.body;
 
-		try {
 			const existingPatient = await Patient.findOne({
 				where: { email },
 			});
 
 			if (existingPatient) {
-				return Send.error(res, null, "Email already in use");
+				return next(new AppError("Email already in use", 400));
 			}
 
 			const hashedpassword = await bcrypt.hash(password, 10);
 
 			const newUser = await Patient.create({
-                email,
-                firstname,
-                lastname,
-                password: hashedpassword,
-                email_verified: false,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            });
+				email,
+				firstname,
+				lastname,
+				password: hashedpassword,
+				email_verified: false,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			});
 
 			return Send.success(
 				res,
 				{
 					id: newUser.id,
 					firstname: newUser.firstname,
-                    lastname: newUser.lastname,
+					lastname: newUser.lastname,
 					email: newUser.email,
 					refreshToken: newUser.refresh_token,
-                    createdAt: newUser.createdAt,
-                    updatedAt: newUser.updatedAt,
+					createdAt: newUser.createdAt,
+					updatedAt: newUser.updatedAt,
 				},
 				"User created successfully"
 			);
-		} catch (err) {
-			console.error("Error registering user: ", err);
-			return Send.error(res, null, "Registration failed");
 		}
-	};
+	);
 
-	static logout = async (req: AuthenticateRequest, res: Response) => {
-		try {
+	static logout = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response) => {
 			const patientId = req.userId;
 			if (patientId) {
 				await Patient.update(
 					{ refresh_token: null },
 					{ where: { id: patientId } }
-                );
+				);
 			}
 
 			res.clearCookie("accessToken");
 			res.clearCookie("refreshToken");
 
 			return Send.success(res, null, "Logged out successfully");
-		} catch (err) {
-			console.error("Error loging out: ", err);
-			return Send.error(res, null, "Error logging out");
 		}
-	};
+	);
 
-	static refreshToken = async (req: AuthenticateRequest, res: Response) => {
+	static refreshToken = async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
 		if (!process.env.JWT_EXPIRES_IN) {
-			throw new Error("Missing environment variable")
+			return next(new AppError("Missing environment variable", 500));
 		}
 		try {
 			const userId = req.userId;
@@ -157,7 +153,7 @@ class PatientController {
 			const newAccessToken = jwt.sign(
 				{ userId: user.id },
 				process.env.JWT_EXPIRES_IN,
-				{ expiresIn: 15 * 60 * 1000, }
+				{ expiresIn: 15 * 60 * 1000 }
 			);
 
 			res.cookie("accessToken", newAccessToken, {

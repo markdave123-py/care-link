@@ -9,7 +9,7 @@ export class RequestSession extends Model<
 	declare id: CreationOptional<string>;
 	declare patient_id: CreationOptional<string>;
 	declare health_practitioner_id: CreationOptional<string>;
-	declare status: string;
+	declare status: CreationOptional<string>;
 	declare patient_symptoms: string;
 	declare ongoing_medication: string;
 }

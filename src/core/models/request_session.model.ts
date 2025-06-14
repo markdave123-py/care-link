@@ -1,7 +1,18 @@
 import { DataTypes, Model } from "sequelize";
+import type { CreationOptional, InferAttributes, InferCreationAttributes } from "sequelize";
 import sequelize from "../config/db";
 
-export class RequestSession extends Model {}
+export class RequestSession extends Model<
+	InferAttributes<RequestSession>,
+	InferCreationAttributes<RequestSession>
+> {
+	declare id: CreationOptional<string>;
+	declare patient_id: CreationOptional<string>;
+	declare health_practitioner_id: CreationOptional<string>;
+	declare status: string;
+	declare patient_symptoms: string;
+	declare ongoing_medication: string;
+}
 
 RequestSession.init(
 	{

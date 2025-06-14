@@ -2,7 +2,9 @@ import type { Request, Response, NextFunction } from "express";
 import * as jwt from "jsonwebtoken";
 
 import Send from "../utils/response.utils";
-import { env } from "../config";
+import { config } from "dotenv";
+
+config({ path: `.env.${process.env.NODE_ENV || 'development'}.local`})
 
 export type AuthenticateRequest = Request & {
   userId: number,
@@ -20,13 +22,17 @@ class AuthMiddleware {
     static authenticateUser = (req: AuthenticateRequest, res: Response, next: NextFunction) => {
         const token = req.cookies.accessToken;
 
+        if (!process.env.JWT_SECRET) {
+            throw new Error("Missing environment variable")
+        }
+        
         if (!token) {
             return Send.unauthorized(res, null);
         }
-
+        
         try {
-            const decodedToken = jwt.verify(token, env.JWT_SECRET) as DecodedToken;
-
+            const decodedToken = jwt.verify(token, process.env.JWT_SECRET) as DecodedToken;
+            
             req.userId = decodedToken.userId;
             next();
         } catch (err) {
@@ -34,16 +40,20 @@ class AuthMiddleware {
             return Send.unauthorized(res, null)
         }
     }
-
+    
     static refreshTokenValidation = (req: AuthenticateRequest, res: Response, next: NextFunction) => {
         const token = req.cookies.refreshToken;
+
+        if (!process.env.JWT_REFRESH_TOKEN_SECRET) {
+            throw new Error("Missing environment variable")
+        }
 
         if (!token) {
             return Send.unauthorized(res, {message: "No refresh token provided"});
         }
 
         try {
-            const decodedToken = jwt.verify(token, env.JWT_REFRESH_TOKEN_SECRET) as DecodedToken;
+            const decodedToken = jwt.verify(token, process.env.JWT_REFRESH_TOKEN_SECRET) as DecodedToken;
 
             req.userId = decodedToken.userId;
             next();

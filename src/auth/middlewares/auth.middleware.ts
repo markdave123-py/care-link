@@ -3,65 +3,67 @@ import * as jwt from "jsonwebtoken";
 
 import Send from "../utils/response.utils";
 import { config } from "dotenv";
+import { CatchAsync } from "../../core";
+import { AppError } from "../../core";
 
-config({ path: `.env.${process.env.NODE_ENV || 'development'}.local`})
+config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 export type AuthenticateRequest = Request & {
-  userId: number,
-}
+	userId: string;
+};
 
 export interface DecodedToken {
-    userId: number,
+	userId: string;
 }
 
 class AuthMiddleware {
-    /**
-     * Middleware to authenticate the user based on the access token stored in the HttpOnly cookie.
-     * This middleware will verify the access token and attach the user information to the request object.
-     */
-    static authenticateUser = (req: AuthenticateRequest, res: Response, next: NextFunction) => {
-        const token = req.cookies.accessToken;
+	/**
+	 * Middleware to authenticate the user based on the access token stored in the HttpOnly cookie.
+	 * This middleware will verify the access token and attach the user information to the request object.
+	 */
+	static authenticateUser = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+			const token = req.cookies.accessToken;
 
-        if (!process.env.JWT_SECRET) {
-            throw new Error("Missing environment variable")
-        }
-        
-        if (!token) {
-            return Send.unauthorized(res, null);
-        }
-        
-        try {
-            const decodedToken = jwt.verify(token, process.env.JWT_SECRET) as DecodedToken;
-            
-            req.userId = decodedToken.userId;
-            next();
-        } catch (err) {
-            console.error("Authentication failed:", err);
-            return Send.unauthorized(res, null)
-        }
-    }
-    
-    static refreshTokenValidation = (req: AuthenticateRequest, res: Response, next: NextFunction) => {
-        const token = req.cookies.refreshToken;
+			if (!process.env.JWT_SECRET) {
+				return next(new AppError("Missing environment variable", 500));
+			}
 
-        if (!process.env.JWT_REFRESH_TOKEN_SECRET) {
-            throw new Error("Missing environment variable")
-        }
+			if (!token) {
+				return Send.unauthorized(res, null);
+			}
 
-        if (!token) {
-            return Send.unauthorized(res, {message: "No refresh token provided"});
-        }
+			const decodedToken = jwt.verify(
+				token,
+				process.env.JWT_SECRET
+			) as DecodedToken;
 
-        try {
-            const decodedToken = jwt.verify(token, process.env.JWT_REFRESH_TOKEN_SECRET) as DecodedToken;
+			req.userId = decodedToken.userId;
+			next();
+		}
+	);
 
-            req.userId = decodedToken.userId;
-            next();
-        } catch (err) {
-            console.error("Refresh token authentication failed:", err);
-            return Send.unauthorized(res, { message: "Invalid or expired token" })
-        }
-    }
+	static refreshTokenValidation = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+			const token = req.cookies.refreshToken;
+
+			if (!process.env.JWT_REFRESH_TOKEN_SECRET) {
+				return next(new AppError("Missing environment variable", 500));
+			}
+
+			if (!token) {
+				return Send.unauthorized(res, { message: "No refresh token provided" });
+			}
+
+			const decodedToken = jwt.verify(
+				token,
+				process.env.JWT_REFRESH_TOKEN_SECRET
+			) as DecodedToken;
+
+			req.userId = decodedToken.userId;
+			next();
+		}
+	);
 }
 
 export default AuthMiddleware;

@@ -4,16 +4,15 @@ import { Patient } from "../../core";
 import Send from "../utils/response.utils";
 import * as jwt from "jsonwebtoken";
 import { config } from "dotenv";
+import { CatchAsync } from "../../core";
 
 config({ path: `.env.${process.env.NODE_ENV || 'development'}.local`})
 
 class AuthController {
-    static refreshToken = async (req: AuthenticateRequest, res: Response) => {
+    static refreshToken = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response) => {
         if (!process.env.JWT_REFRESH_TOKEN_SECRET) {
             throw new Error("Missing Environment variable")
         };
-
-        try {
 
             const userId = req.userId;
             const refreshToken = req.cookies.refreshToken;
@@ -44,11 +43,7 @@ class AuthController {
             });
     
             return Send.success(res, null, "Access Token refreshed successfully")
-        } catch(err) {
-            console.error("Error creating access token: ", err);
-            return Send.error(res, null, "Error creating access token")
-        }
-    }
+    })
 }
 
 export default AuthController;

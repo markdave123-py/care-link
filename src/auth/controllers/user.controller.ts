@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticateRequest } from "../middlewares/auth.middleware";
 import Send from "../utils/response.utils";
-import { Patient } from "src/core";
+import { Patient } from "../../core";
 
 class UserController {
 	static getUser = async (req: AuthenticateRequest, res: Response) => {

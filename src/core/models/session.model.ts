@@ -1,7 +1,23 @@
-import { DataTypes, Model } from "sequelize";
+import { Model, DataTypes } from "sequelize";
+import type { CreationOptional, InferAttributes, InferCreationAttributes } from "sequelize";
 import sequelize from "../config/db";
 
-export class Session extends Model {}
+export class Session extends Model<
+	InferAttributes<Session>,
+	InferCreationAttributes<Session>
+> {
+    declare id: CreationOptional<string>;
+    declare patient_id: CreationOptional<string>;
+    declare health_practitioner_id: CreationOptional<string>;
+    declare patient_symptoms: string;
+    declare request_session_id: CreationOptional<string>;
+    declare status: string;
+    declare parentId: CreationOptional<string>;
+    declare health_practitioner_report: string;
+    declare diagnosis: string;
+    declare prescription: string;
+    declare rating: number;
+}
 
 Session.init(
     {
@@ -35,7 +51,7 @@ Session.init(
         diagnosis: {
             type: DataTypes.TEXT,
         },
-        precription: {
+        prescription: {
             type: DataTypes.TEXT,
         },
         rating: {

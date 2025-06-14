@@ -12,7 +12,10 @@ RequestSession.init(
 		},
 		patient_id: DataTypes.UUID,
 		health_practitioner_id: DataTypes.UUID,
-		status: DataTypes.ENUM("pending", "accepted", "rejected", "cancelled"),
+		status: {
+			type: DataTypes.ENUM("pending", "accepted", "rejected", "cancelled"),
+			defaultValue: "pending",
+		},
 		patient_symptoms: DataTypes.TEXT,
 		ongoing_medication: DataTypes.TEXT,
 	},

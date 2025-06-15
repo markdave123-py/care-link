@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { Router } from "express";
 import { HttpStatus } from "../core";
-// import { responseHandler } from "../core";
+// import Send from "src/auth/utils/response.utils";
 import {responseHandler} from "../core";
 export const appRouter = Router();
 

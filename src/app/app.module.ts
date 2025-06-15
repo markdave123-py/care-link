@@ -11,7 +11,7 @@ export const startApp = async () => {
 
   associateModels();
 
-  await sequelize.sync({ force: true });
+  await sequelize.sync({ alter: true });
   console.log("Models synced");
 
   const server = createServer(app);

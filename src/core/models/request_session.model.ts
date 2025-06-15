@@ -12,6 +12,7 @@ export class RequestSession extends Model<
 	declare status: CreationOptional<string>;
 	declare patient_symptoms: string;
 	declare ongoing_medication: string;
+	declare time: Date;
 }
 
 RequestSession.init(
@@ -28,6 +29,7 @@ RequestSession.init(
 			defaultValue: "pending",
 		},
 		patient_symptoms: DataTypes.TEXT,
+		time : DataTypes.DATE,
 		ongoing_medication: DataTypes.TEXT,
 	},
 	{

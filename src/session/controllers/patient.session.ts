@@ -1,8 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
-import Send from "../../auth/utils/response.utils";
+// import Send from "../../auth/utils/response.utils";
 import { AppError } from "../../core";
 import { RequestSession } from "../../core";
 import { CatchAsync } from "../../core";
+import { responseHandler } from "../../core";
+import { HttpStatus } from "../../core";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -11,8 +13,8 @@ declare module "express-serve-static-core" {
 }
 
 export class PatientSession {
-  public requestSession = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { patient_symptoms, hp_id, ongoing_medication } = req.body;
+  public static requestSession = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { patient_symptoms, hp_id, ongoing_medication, time } = req.body;
     const patient_id = req.userId;
 
     if (!patient_id) {
@@ -27,13 +29,22 @@ export class PatientSession {
       patient_id,
       health_practitioner_id: hp_id,
       patient_symptoms,
-      ongoing_medication
+      ongoing_medication,
+      time
     });
 
     if (!newRequest) {
       return next(new AppError("Failed to create session request", 500));
     }
 
-    Send.success(res, newRequest, "Session request created successfully");
+    responseHandler.success(res, HttpStatus.OK, "Session request created successfully", newRequest);
   });
+
+  // public cancelRequest = CatchAsync.wrap(async(req: Request, res : Response, next: NextFunction) : Promise<void> => {
+  //   const patient_id = req.userId;
+  //   const {requestSession_id} = req.body;
+
+  // })
 }
+
+// export const patientSession = new RequestSession();

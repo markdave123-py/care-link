@@ -4,7 +4,6 @@ import * as jwt from "jsonwebtoken";
 import { buildUrl } from "../utils/google";
 import { google } from "../config/oauth";
 import Send from "../utils/response.utils";
-import type { AuthenticateRequest } from "../middlewares/auth.middleware";
 import { AppError, Patient } from "../../core";
 import { config } from "dotenv";
 import { CatchAsync } from "../../core";
@@ -112,65 +111,6 @@ class PatientController {
 			);
 		}
 	);
-
-	static logout = CatchAsync.wrap(
-		async (req: AuthenticateRequest, res: Response) => {
-			const patientId = req.userId;
-			if (patientId) {
-				await Patient.update(
-					{ refresh_token: null },
-					{ where: { id: patientId } }
-				);
-			}
-
-			res.clearCookie("accessToken");
-			res.clearCookie("refreshToken");
-
-			return Send.success(res, null, "Logged out successfully");
-		}
-	);
-
-	static refreshToken = async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
-		if (!process.env.JWT_EXPIRES_IN) {
-			return next(new AppError("Missing environment variable", 500));
-		}
-		try {
-			const userId = req.userId;
-			const refreshToken = req.cookies.refreshToken;
-
-			const user = await Patient.findOne({
-				where: { id: userId },
-			});
-
-			if (!user || !refreshToken) {
-				return Send.unauthorized(res, "Refresh Token not found");
-			}
-
-			if (user.refresh_token !== refreshToken) {
-				return Send.unauthorized(res, { message: "Invalid Refresh Token" });
-			}
-
-			const newAccessToken = jwt.sign(
-				{ userId: user.id },
-				process.env.JWT_EXPIRES_IN,
-				{ expiresIn: 15 * 60 * 1000 }
-			);
-
-			res.cookie("accessToken", newAccessToken, {
-				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
-				maxAge: 15 * 60 * 1000,
-				sameSite: "strict",
-			});
-
-			return Send.success(res, {
-				message: "Access Token refreshed successfully",
-			});
-		} catch (err) {
-			console.error("Error refreshing token: ", err);
-			return Send.error(res, null, "Error generating accessToken");
-		}
-	};
 }
 
 export const initializeGoogleAuth = async (_: Request, res: Response) => {

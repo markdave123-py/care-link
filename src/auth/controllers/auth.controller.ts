@@ -1,8 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticateRequest } from "../middlewares";
-import { Patient } from "../../core";
+import { AccessToken, Patient } from "../../core";
 import Send from "../utils/response.utils";
-import * as jwt from "jsonwebtoken";
 import { config } from "dotenv";
 import { CatchAsync } from "../../core";
 
@@ -28,12 +27,8 @@ class AuthController {
             if (user.refresh_token !== refreshToken) {
                 return Send.unauthorized(res, null, "Invalid refresh token")
             }
-    
-            const accessToken = jwt.sign(
-                { userId },
-                process.env.JWT_REFRESH_TOKEN_SECRET,
-                { expiresIn: "15m" }
-            );
+
+            const accessToken = AccessToken.sign(userId);
     
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
@@ -43,7 +38,24 @@ class AuthController {
             });
     
             return Send.success(res, null, "Access Token refreshed successfully")
-    })
+    });
+
+    static logout = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response) => {
+			const patientId = req.userId;
+			if (patientId) {
+				await Patient.update(
+					{ refresh_token: null },
+					{ where: { id: patientId } }
+				);
+			}
+
+			res.clearCookie("accessToken");
+			res.clearCookie("refreshToken");
+
+			return Send.success(res, null, "Logged out successfully");
+		}
+	);
 }
 
 export default AuthController;

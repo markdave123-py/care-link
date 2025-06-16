@@ -4,8 +4,8 @@ import { config } from "dotenv";
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 interface MailOptions {
-	to: string;
-	redirectLink: string;
+	to: string,
+    emailTemplate: string,
 }
 
 const transporter = nodemailer.createTransport({
@@ -18,12 +18,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export class Mailer {
-	static sendEmail = ({ to, redirectLink }: MailOptions) => {
-		const emailTemplate = `
-            <div>
-                <h3>Click on the link below</h3>
-                <p>${redirectLink}</p>
-            </div>`;
+	static sendEmail = ({ to, emailTemplate }: MailOptions) => {
 		const mailOptions = {
 			from: `"Healthcare Scheduler" <${process.env.EMAIL_USER}>`,
 			to,

@@ -13,7 +13,7 @@ export class HealthPractitioner extends Model<
 	declare firstname: string;
 	declare lastname: string;
 	declare hp_type_id: string | null;
-	declare password: string | null;
+	declare password: string;
 	declare profile_picture: string | null;
 	declare identification_means: string | null;
 	declare identification_verified: string | null;

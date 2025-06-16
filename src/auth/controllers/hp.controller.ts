@@ -1,9 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
-import { AppError, HealthPractitioner } from "../../core";
+import { AccessToken, AppError, HealthPractitioner, RefreshToken } from "../../core";
 import Send from "../utils/response.utils";
 import { config } from "dotenv";
 import * as bcrypt from "bcrypt";
-import * as jwt from "jsonwebtoken";
 import { CatchAsync } from "../../core";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
@@ -28,15 +27,9 @@ class HpController {
 			return next(new AppError("Incorrect password", 401));
 		}
 
-		const accessToken = jwt.sign({ userId: hp.id }, process.env.JWT_SECRET, {
-			expiresIn: "15m",
-		});
+		const accessToken = AccessToken.sign(hp.id);
 
-		const refreshToken = jwt.sign(
-			{ userId: hp.id },
-			process.env.JWT_REFRESH_TOKEN_SECRET,
-			{ expiresIn: "1d" }
-		);
+		const refreshToken = RefreshToken.sign(hp.id);
 
 		await hp.update({
 			refresh_token: refreshToken,

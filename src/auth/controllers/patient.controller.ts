@@ -1,10 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
-import { buildUrl } from "../utils/google";
-import { google } from "../config/oauth";
 import Send from "../utils/response.utils";
-import type { AuthenticateRequest } from "../middlewares/auth.middleware";
 import { AppError, Patient } from "../../core";
 import { config } from "dotenv";
 import { CatchAsync } from "../../core";
@@ -112,132 +109,6 @@ class PatientController {
 			);
 		}
 	);
-
-	static logout = CatchAsync.wrap(
-		async (req: AuthenticateRequest, res: Response) => {
-			const patientId = req.userId;
-			if (patientId) {
-				await Patient.update(
-					{ refresh_token: null },
-					{ where: { id: patientId } }
-				);
-			}
-
-			res.clearCookie("accessToken");
-			res.clearCookie("refreshToken");
-
-			return Send.success(res, null, "Logged out successfully");
-		}
-	);
-
-	static refreshToken = async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
-		if (!process.env.JWT_EXPIRES_IN) {
-			return next(new AppError("Missing environment variable", 500));
-		}
-		try {
-			const userId = req.userId;
-			const refreshToken = req.cookies.refreshToken;
-
-			const user = await Patient.findOne({
-				where: { id: userId },
-			});
-
-			if (!user || !refreshToken) {
-				return Send.unauthorized(res, "Refresh Token not found");
-			}
-
-			if (user.refresh_token !== refreshToken) {
-				return Send.unauthorized(res, { message: "Invalid Refresh Token" });
-			}
-
-			const newAccessToken = jwt.sign(
-				{ userId: user.id },
-				process.env.JWT_EXPIRES_IN,
-				{ expiresIn: 15 * 60 * 1000 }
-			);
-
-			res.cookie("accessToken", newAccessToken, {
-				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
-				maxAge: 15 * 60 * 1000,
-				sameSite: "strict",
-			});
-
-			return Send.success(res, {
-				message: "Access Token refreshed successfully",
-			});
-		} catch (err) {
-			console.error("Error refreshing token: ", err);
-			return Send.error(res, null, "Error generating accessToken");
-		}
-	};
 }
-
-export const initializeGoogleAuth = async (_: Request, res: Response) => {
-	const consent_screen = buildUrl(google);
-	res.redirect(consent_screen);
-};
-
-export const getToken = async (req: Request, res: Response): Promise<void> => {
-	console.log(req.query);
-
-	const { code } = req.query;
-
-	const GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
-
-	if (
-		!process.env.GOOGLE_CLIENT_ID ||
-		!process.env.GOOGLE_CLIENT_SECRET ||
-		!process.env.GOOGLE_REDIRECT_URI ||
-		!code
-	) {
-		res.status(400).json({ error: "Missing required OAuth parameters" });
-		return;
-	}
-
-	try {
-		const response = await fetch(GOOGLE_TOKEN_ENDPOINT, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
-			},
-			body: new URLSearchParams({
-				client_id: process.env.GOOGLE_CLIENT_ID,
-				client_secret: process.env.GOOGLE_CLIENT_SECRET,
-				code: code as string,
-				grant_type: "authorization_code",
-				redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-			}),
-		});
-
-		if (!response.ok) {
-			// Get error details from the response
-			const errorText = await response.text();
-			console.error("Token exchange failed:", errorText);
-			res.status(400).json({
-				error: "Token exchange failed",
-				details: errorText,
-			});
-			return;
-		}
-
-		const access_token_data = await response.json();
-		console.log(access_token_data);
-
-		const { id_token } = access_token_data;
-
-		const token_info_response = await fetch(
-			`${process.env.GOOGLE_TOKEN_INFO_URL}?id_token=${id_token}`
-		);
-
-		res.json({
-			success: true,
-			data: await token_info_response.json(),
-		});
-	} catch (err) {
-		console.error("OAuth callback error:", err);
-		res.status(500).json({ error: "Internal server error" });
-	}
-};
 
 export default PatientController;

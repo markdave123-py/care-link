@@ -5,6 +5,7 @@ import Send from "../utils/response.utils";
 import { AppError, Patient } from "../../core";
 import { config } from "dotenv";
 import { CatchAsync } from "../../core";
+import { VerificationMailer } from "../services/veryifyuser.service";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -93,6 +94,9 @@ class PatientController {
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			});
+
+			const token = "mayday mayday mayday";
+			await VerificationMailer.send(email, token);
 
 			return Send.success(
 				res,

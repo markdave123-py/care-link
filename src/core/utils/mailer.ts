@@ -1,5 +1,5 @@
 import type { Transporter } from "nodemailer";
-import nodemailer from "nodemailer";
+import * as nodemailer from "nodemailer";
 
 interface MailOptions {
   to: string;

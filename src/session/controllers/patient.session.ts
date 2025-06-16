@@ -6,7 +6,7 @@ import { CatchAsync } from "../../core";
 import { responseHandler } from "../../core";
 import { HttpStatus } from "../../core";
 import { MailerService } from "../services";
-import { where } from "sequelize";
+// import { where } from "sequelize";
 const mailerService = new MailerService();
 declare module "express-serve-static-core" {
   interface Request {

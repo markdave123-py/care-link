@@ -28,5 +28,5 @@ app.use("/api/v1/auth/hp", hpRouter);
 app.use("/api/v1", hptypeRouter);
 app.use("/api/v1/auth", signInRouter);
 app.use("/api/v1/auth", userRouter);
-app.use("/api/v1/session", patientSession);
+app.use("/api/v1/sessions", patientSession);
 app.use(ErrorMiddleware.handleError);

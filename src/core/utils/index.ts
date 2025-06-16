@@ -3,3 +3,4 @@ export * from "./responseHandler";
 export * from "./AppError";
 export * from "./catchAsync";
 export * from "./jwtHelper";
+export * from "./mailer";

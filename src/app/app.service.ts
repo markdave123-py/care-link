@@ -9,6 +9,7 @@ import hpRouter from "../auth/routes/hp.routes";
 import hptypeRouter from "../auth/routes/hptype.routes";
 // import authRouter from "../auth/routes/auth.routes";
 import userRouter from "../auth/routes/user.routes";
+import { patientSession } from "../session";
 import {ErrorMiddleware} from "../core";
 export const app = express();
 
@@ -25,4 +26,5 @@ app.use("/api/v1/auth/patient", patientRouter);
 app.use("/api/v1/auth/hp", hpRouter);
 app.use("/api/v1", hptypeRouter);
 app.use("/api/v1/auth", userRouter);
+app.use("/api/v1/session", patientSession);
 app.use(ErrorMiddleware.handleError);

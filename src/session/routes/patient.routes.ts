@@ -1,6 +1,6 @@
 import {Router} from "express";
 import { PatientSession } from "../controllers";
 
-export const patientRouter = Router();
+export const patientSession = Router();
 
-patientRouter.post("/", PatientSession.requestSession);
+patientSession.post("/request", PatientSession.requestSession);

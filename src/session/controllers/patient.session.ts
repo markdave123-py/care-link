@@ -37,7 +37,7 @@ export class PatientSession {
       return next(new AppError("Failed to create session request", 500));
     }
 
-    responseHandler.success(res, HttpStatus.OK, "Session request created successfully", newRequest);
+    return responseHandler.success(res, HttpStatus.OK, "Session request created successfully", newRequest);
   });
 
   // public cancelRequest = CatchAsync.wrap(async(req: Request, res : Response, next: NextFunction) : Promise<void> => {

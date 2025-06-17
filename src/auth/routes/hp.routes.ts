@@ -9,6 +9,10 @@ const hpRouter = Router();
 
 hpRouter.post('/register', RequestValidator.validate(registerHpSchema), HpController.register);
 hpRouter.post('/login', RequestValidator.validate(loginSchema), HpController.login);
+hpRouter.get('/:id', HpController.getPractitionerById);
+hpRouter.delete('/:id', HpController.deletePractitioner);
+hpRouter.get('/', HpController.getAllPractitioners);
+hpRouter.post('/forgot-password', HpController.forgotPassword);
 hpRouter.post('/logout', AuthMiddleware.authenticateUser, AuthController.logout);
 
 export default hpRouter;

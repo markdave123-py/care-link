@@ -5,7 +5,8 @@ import Send from "../utils/response.utils";
 import { AppError, Patient } from "../../core";
 import { config } from "dotenv";
 import { CatchAsync } from "../../core";
-import { VerificationMailer } from "../services/veryifyuser.service";
+import { VerificationMailer } from "../services";
+import AuthController from "./auth.controller";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -113,6 +114,70 @@ class PatientController {
 			);
 		}
 	);
+
+	static getPatientById = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const userId = req.params.id;
+
+			const patient = await Patient.findOne({
+				where: { id: userId },
+				attributes: { exclude: ["password"] },
+			});
+			if (!patient) {
+				return next(
+					new AppError(`Patient with Id: ${userId} not found`, 404)
+				);
+			}
+
+			return Send.success(res, { patient });
+		}
+	);
+
+	static getAllPatients = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const allPatients = await Patient.findAll();
+			if (!allPatients) {
+				return next(new AppError("No Patient seen", 404));
+			}
+
+			return Send.success(res, { allPatients });
+		}
+	);
+
+	static deletePatient = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const patientId = req.params.id;
+
+			const patient = await Patient.findOne({
+				where: { id: patientId },
+			});
+
+			if (!patient) {
+				return next(
+					new AppError(`Patient with ID ${patientId} not found`, 404)
+				);
+			}
+
+			await patient.destroy();
+
+			return Send.success(res, null, "Patient deleted successfully");
+		}
+	);
+
+	static forgotPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {
+		const { email } = req.body;
+
+		const passwordForgetter = await Patient.findOne({
+			where: { email }
+		});
+		if (!passwordForgetter) {
+			return next(new AppError(`User with Email: ${email} not found`, 400))
+		}
+		
+		await AuthController.forgotPassword(email, passwordForgetter.id)
+
+		return Send.success(res, null, "Link to reset password sent successfully")
+	});
 }
 
 export default PatientController;

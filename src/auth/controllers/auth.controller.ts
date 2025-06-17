@@ -6,6 +6,7 @@ import { config } from "dotenv";
 import { CatchAsync } from "../../core";
 import { buildUrl } from "../utils";
 import { google } from "../config";
+import { ForgotPasswordLink } from "../services";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -145,6 +146,12 @@ class AuthController {
 			res.status(500).json({ error: "Internal server error" });
 		}
 	};
+
+    static forgotPassword = async (email: string, userId: string) => {
+        const token = AccessToken.sign(userId);
+
+        await ForgotPasswordLink.send(token, email);
+    }
 }
 
 export default AuthController;

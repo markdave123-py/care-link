@@ -1,10 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 // import Send from "../../auth/utils/response.utils";
-import { AppError } from "../../core";
-import { RequestSession, Patient } from "../../core";
-import { CatchAsync } from "../../core";
-import { responseHandler } from "../../core";
-import { HttpStatus } from "../../core";
+import { RequestSession, Patient, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
 import { MailerService } from "../services";
 // import { where } from "sequelize";
 const mailerService = new MailerService();

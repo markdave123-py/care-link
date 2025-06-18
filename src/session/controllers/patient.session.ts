@@ -1,36 +1,35 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Response, NextFunction } from "express";
 // import Send from "../../auth/utils/response.utils";
-import { RequestSession, Patient, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
+import { RequestSession, Patient, HealthPractitioner, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
+import type { AuthenticateRequest } from "../../auth/middlewares";
 import { MailerService } from "../services";
 // import { where } from "sequelize";
 const mailerService = new MailerService();
-declare module "express-serve-static-core" {
-  interface Request {
-    userId?: string;
-  }
-}
+// declare module "express-serve-static-core" {
+//   interface Request {
+//     userId?: string;
+//   }
+// }
 
 export class PatientSession {
-  public static requestSession = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { patient_symptoms, hp_id, ongoing_medication, time, patient_id } = req.body;
+  public static requestSession = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
+    const { patient_symptoms, hp_id, ongoing_medication, time} = req.body;
     // const patient_id = req.userId;
-    const patient = await Patient.findOne({where: {id: patient_id}});
-    const healthPracticioner = await Patient.findOne({where: {id: hp_id}});
+    if (!patient_symptoms || !hp_id || !time) {
+      return next(new AppError("All fields are required", HttpStatus.BAD_REQUEST));
+    }
+    const patient = await Patient.findByPk(req.userId);
+
+    const healthPracticioner = await HealthPractitioner.findByPk(hp_id);
     if (!healthPracticioner) {
       return next(new AppError("Health Practitioner not found", HttpStatus.NOT_FOUND));
     }
     if (!patient) {
       return next(new AppError("Patient not found", HttpStatus.NOT_FOUND));
     }
-    if (!patient_id) {
-      return next(new AppError("User ID is required", HttpStatus.BAD_REQUEST));
-    }
-    if (!patient_symptoms || !hp_id) {
-      return next(new AppError("Symptoms and HP ID are required", HttpStatus.BAD_REQUEST));
-    }
 
     const newRequest = await RequestSession.create({
-      patient_id,
+      patient_id : req.userId,
       health_practitioner_id: hp_id,
       patient_symptoms,
       ongoing_medication,
@@ -50,10 +49,12 @@ export class PatientSession {
     return responseHandler.success(res, HttpStatus.OK, "Session request created successfully", newRequest);
   });
 
-  public static cancelRequest = CatchAsync.wrap(async(req: Request, res : Response, next: NextFunction) : Promise<void> => {
+  public static cancelRequest = CatchAsync.wrap(async(req: AuthenticateRequest, res : Response, next: NextFunction) : Promise<void> => {
     const patient_id = req.userId;
     const {requestSession_id} = req.body;
-    const requestSession = await RequestSession.findOne({where: {id : requestSession_id}});
+    const requestSession = await RequestSession.findByPk(requestSession_id);
+    const patient = await Patient.findByPk(patient_id);
+    const healthPractitioner = await HealthPractitioner.findByPk(requestSession?.health_practitioner_id);
     if (!requestSession) {
       return next(new AppError("Session request not found", HttpStatus.NOT_FOUND));
     }
@@ -64,11 +65,22 @@ export class PatientSession {
       return next(new AppError("Only pending requests can be cancelled", HttpStatus.BAD_REQUEST));
     }
     requestSession.status = "cancelled";
+    if (!healthPractitioner || !patient) {
+      return next(new AppError("Health Practitioner or patient not found", HttpStatus.NOT_FOUND));
+    }
+    await mailerService.sendPatientCancelationEmail(
+      patient.email,
+      `Health Practitioner Name:  ${healthPractitioner.firstname} ${healthPractitioner.lastname}, Scheduled Time: ${requestSession.time.toString()}`
+    );  
+    await mailerService.sendPractitionerCancelationEmail(
+      healthPractitioner.email,
+      `Patient Name:  ${patient.firstname} ${patient.lastname}, Scheduled Time: ${requestSession.time.toString()}`
+    );
     await requestSession.save();
     return responseHandler.success(res, HttpStatus.OK, "Session request cancelled successfully", requestSession);
   });
 
-  public static getPatientSessions = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public static getPatientSessions = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
     const patient_id = req.userId;
 
     if (!patient_id) {

@@ -38,5 +38,28 @@ export class MailerService {
     `;
     await this.mailer.sendMail({ to: email, subject, html });
   }
-}
 
+  public async sendPatientCancelationEmail(email: string, sessionDetails: string): Promise<void> {
+    const subject = "Session Cancelation Notification";
+    const html = `
+      <h2>Session Cancelation</h2>
+      <p>This is to inform you that your session request has been canceled.</p>
+      <p><strong>Details:</strong> ${sessionDetails}</p>
+      <p>If you have any questions, please contact support.</p>
+    `;
+    await this.mailer.sendMail({ to: email, subject, html });
+  }
+
+
+  public async sendPractitionerCancelationEmail(email: string, sessionDetails: string): Promise<void> {
+    const subject = "Session Cancelation Notification";
+    const html = `
+      <h2>Session Cancelation</h2>
+      <p>This is to inform you that a session request has been canceled.</p>
+      <p><strong>Details:</strong> ${sessionDetails}</p>
+      <p>If you have any questions, please contact support.</p>
+    `;
+    await this.mailer.sendMail({ to: email, subject, html });
+  }
+
+}

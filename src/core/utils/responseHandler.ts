@@ -1,7 +1,7 @@
 import type { Response } from "express";
 
 class ResponseHandler {
-  public success<T>(res: Response, statusCode: number,message: string, data?: T): void {
+  public success<T>(res: Response, statusCode: number, message: string, data?: T): void {
     res.status(statusCode).json({
       status: "success",
       message,

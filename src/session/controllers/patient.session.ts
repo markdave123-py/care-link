@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Response, NextFunction } from "express";
 // import Send from "../../auth/utils/response.utils";
 import { RequestSession, Patient, HealthPractitioner, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";

@@ -1,8 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import * as bcrypt from "bcrypt";
-import * as jwt from "jsonwebtoken";
 import Send from "../utils/response.utils";
-import { AppError, Patient } from "../../core";
+import { AccessToken, AppError, EmailVerificationToken, Patient, RefreshToken } from "../../core";
 import { config } from "dotenv";
 import { CatchAsync } from "../../core";
 import { VerificationMailer } from "../services";
@@ -31,19 +30,9 @@ class PatientController {
 				return next(new AppError("Incorrect password", 401));
 			}
 
-			const accessToken = jwt.sign(
-				{ userId: patient.id },
-				process.env.JWT_SECRET,
-				{
-					expiresIn: "15m",
-				}
-			);
+			const accessToken = AccessToken.sign(patient.id);
 
-			const refreshToken = jwt.sign(
-				{ userId: patient.id },
-				process.env.JWT_REFRESH_TOKEN_SECRET,
-				{ expiresIn: "1d" }
-			);
+			const refreshToken = RefreshToken.sign(patient.id);
 
 			await patient.update({
 				refresh_token: refreshToken,
@@ -96,7 +85,7 @@ class PatientController {
 				updatedAt: new Date(),
 			});
 
-			const token = "mayday mayday mayday";
+			const token = EmailVerificationToken.sign(newUser.id);
 			await VerificationMailer.send(email, token);
 
 			return Send.success(
@@ -171,7 +160,7 @@ class PatientController {
 			where: { email }
 		});
 		if (!passwordForgetter) {
-			return next(new AppError(`User with Email: ${email} not found`, 400))
+			return next(new AppError(`User with Email: ${email} not found`, 404))
 		}
 		
 		await AuthController.forgotPassword(email, passwordForgetter.id)

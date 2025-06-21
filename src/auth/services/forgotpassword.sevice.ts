@@ -11,7 +11,7 @@ export class ForgotPasswordService {
     };
 
     private buildPasswordResetLink(token: string): string {
-        return `${process.env.CLIENT_URL}/forgotpassword?token=${token}`;
+        return `http://localhost:3000/api/v1/auth/patient/reset-password?token=${token}`;
     };
 
     private buildHtmlTemplate(link: string): string {

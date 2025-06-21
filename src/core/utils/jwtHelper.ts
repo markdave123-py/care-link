@@ -15,14 +15,14 @@ export class AccessToken {
         )
     }
 
-    static verify = (token: string) => {
+    static verify = (token: string): { userId: string } => {
         if (!process.env.JWT_SECRET) {
             throw new Error("Missing environment variable")
         }
         return jwt.verify(
             token,
             process.env.JWT_SECRET,
-        )
+        ) as { userId: string }
     }
 
     static decode = (token: string) => {
@@ -33,7 +33,7 @@ export class AccessToken {
             token
         )
     }
-}
+};
 
 export class RefreshToken {
     static sign = (userId: string) => {
@@ -65,4 +65,36 @@ export class RefreshToken {
             token
         )
     }
-}
+};
+
+export class EmailVerificationToken {
+    static sign = (userId: string) => {
+        if (!process.env.JWT_EMAIL_TOKEN_SECRET || !process.env.JWT_EMAIL_TOKEN_EXPIRES_IN) {
+            throw new Error("Missing environment variable")
+        }
+        return jwt.sign(
+            { userId },
+            process.env.JWT_EMAIL_TOKEN_SECRET,
+            { expiresIn: "7d" }
+        )
+    }
+
+    static verify = (token: string) => {
+        if (!process.env.JWT_EMAIL_TOKEN_SECRET) {
+            throw new Error("Missing environment variable")
+        }
+        return jwt.verify(
+            token,
+            process.env.JWT_EMAIL_TOKEN_SECRET,
+        )
+    }
+
+    static decode = (token: string) => {
+        if (!process.env.JWT_EMAIL_TOKEN_SECRET) {
+            throw new Error("Missing environment variable")
+        }
+        return jwt.decode(
+            token
+        )
+    }
+};

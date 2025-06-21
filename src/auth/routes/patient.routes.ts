@@ -17,4 +17,6 @@ patientRouter.get('/', PatientController.getAllPatients);
 patientRouter.post('/forgot-password', PatientController.forgotPassword);
 patientRouter.post('/logout', AuthMiddleware.authenticateUser, AuthController.logout);
 
+patientRouter.post('/reset-password', AuthController.resetPassword);
+
 export default patientRouter;

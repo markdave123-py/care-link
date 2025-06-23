@@ -6,7 +6,7 @@ import { config } from "dotenv";
 import { CatchAsync } from "../../core";
 import { VerificationMailer } from "../services";
 import AuthController from "./auth.controller";
-import { AuthenticateRequest } from "../middlewares";
+import type { AuthenticateRequest } from "../middlewares";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 

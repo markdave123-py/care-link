@@ -10,7 +10,7 @@ import { config } from "dotenv";
 import * as bcrypt from "bcrypt";
 import { CatchAsync } from "../../core";
 import AuthController from "./auth.controller";
-import { AuthenticateRequest } from "../middlewares";
+import type { AuthenticateRequest } from "../middlewares";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 

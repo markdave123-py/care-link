@@ -10,6 +10,7 @@ import { config } from "dotenv";
 import * as bcrypt from "bcrypt";
 import { CatchAsync } from "../../core";
 import AuthController from "./auth.controller";
+import { AuthenticateRequest } from "../middlewares";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -104,6 +105,24 @@ class HpController {
 				},
 				"User created successfully"
 			);
+		}
+	);
+
+	static verifiedHealthPractitioner = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+			const verifiedUserId = req.userId;
+
+			const user = await HealthPractitioner.update(
+				{ email_verified: true },
+				{ where: { id: verifiedUserId } }
+			);
+			if (!user) {
+				return next(new AppError(`Practitioner of ID: ${verifiedUserId} not found`, 404));
+			}
+
+			res.status(200).json({
+				message: "User verified successfully",
+			})
 		}
 	);
 

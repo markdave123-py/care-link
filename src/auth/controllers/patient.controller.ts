@@ -6,6 +6,7 @@ import { config } from "dotenv";
 import { CatchAsync } from "../../core";
 import { VerificationMailer } from "../services";
 import AuthController from "./auth.controller";
+import { AuthenticateRequest } from "../middlewares";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -101,6 +102,26 @@ class PatientController {
 				},
 				"User created successfully"
 			);
+		}
+	);
+
+	static verifiedPatient = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+			const verifiedUserId = req.userId;
+
+			const user = await Patient.update(
+				{ email_verified: true },
+				{
+					where: { id: verifiedUserId },
+				},
+			);
+			if (!user) {
+				return next(new AppError(`User of ID: ${verifiedUserId} not found`, 404));
+			}
+
+			res.status(200).json({
+				message: "User verified successfully",
+			})
 		}
 	);
 

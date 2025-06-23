@@ -3,7 +3,7 @@ import * as jwt from "jsonwebtoken";
 
 import Send from "../utils/response.utils";
 import { config } from "dotenv";
-import { CatchAsync } from "../../core";
+import { CatchAsync, EmailVerificationToken } from "../../core";
 import { AppError } from "../../core";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
@@ -61,6 +61,20 @@ class AuthMiddleware {
 			) as DecodedToken;
 
 			req.userId = decodedToken.userId;
+			next();
+		}
+	);
+
+	static verifyUserEmail = CatchAsync.wrap(
+		async(req: AuthenticateRequest, res: Response, next: NextFunction) => {
+			const token = req.query.token as string;
+			if (!token) {
+				return next(new AppError("Missing token from URL", 500));
+			}
+			const decodedToken = EmailVerificationToken.verify(token) as DecodedToken;
+
+			req.userId = decodedToken.userId;
+			
 			next();
 		}
 	);

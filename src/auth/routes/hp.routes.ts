@@ -8,6 +8,7 @@ import AuthController from "../controllers/auth.controller";
 const hpRouter = Router();
 
 hpRouter.post('/register', RequestValidator.validate(registerHpSchema), HpController.register);
+hpRouter.get('/verify-user', AuthMiddleware.verifyUserEmail, HpController.verifiedHealthPractitioner);
 hpRouter.post('/login', RequestValidator.validate(loginSchema), HpController.login);
 hpRouter.get('/:id', HpController.getPractitionerById);
 hpRouter.delete('/:id', HpController.deletePractitioner);

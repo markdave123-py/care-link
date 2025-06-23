@@ -11,7 +11,6 @@ import hptypeRouter from "../auth/routes/hptype.routes";
 import userRouter from "../auth/routes/user.routes";
 import { patientSession } from "../session";
 import {ErrorMiddleware} from "../core";
-import signInRouter from "../auth/routes/signIn.routes";
 export const app = express();
 
 app.use(express.json());
@@ -26,7 +25,6 @@ app.use("/api/v1", appRouter);
 app.use("/api/v1/auth/patient", patientRouter);
 app.use("/api/v1/auth/hp", hpRouter);
 app.use("/api/v1", hptypeRouter);
-app.use("/api/v1/auth", signInRouter);
 app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/sessions", patientSession);
 app.use(ErrorMiddleware.handleError);

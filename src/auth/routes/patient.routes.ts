@@ -10,11 +10,14 @@ const patientRouter = Router();
 patientRouter.get('/google', AuthController.initializeGoogleAuth);
 patientRouter.get('/google/callback', AuthController.getToken);
 patientRouter.post('/register', RequestValidator.validate(registerPatientSchema), PatientController.register);
+patientRouter.get('/verify-user', AuthMiddleware.verifyUserEmail, PatientController.verifiedPatient);
 patientRouter.post('/login', RequestValidator.validate(loginSchema), PatientController.login);
 patientRouter.get('/:id', PatientController.getPatientById);
 patientRouter.delete('/:id', PatientController.deletePatient);
 patientRouter.get('/', PatientController.getAllPatients);
 patientRouter.post('/forgot-password', PatientController.forgotPassword);
 patientRouter.post('/logout', AuthMiddleware.authenticateUser, AuthController.logout);
+
+patientRouter.post('/reset-password', AuthController.resetPassword);
 
 export default patientRouter;

@@ -1,12 +1,13 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import type { AuthenticateRequest } from "../middlewares";
-import { AccessToken, Patient } from "../../core";
+import { AccessToken, AppError, Patient } from "../../core";
 import Send from "../utils/response.utils";
 import { config } from "dotenv";
 import { CatchAsync } from "../../core";
 import { buildUrl } from "../utils";
 import { google } from "../config";
 import { ForgotPasswordLink } from "../services";
+import * as bcrypt from "bcrypt";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -151,7 +152,30 @@ class AuthController {
         const token = AccessToken.sign(userId);
 
         await ForgotPasswordLink.send(token, email);
-    }
+    };
+
+	static resetPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {
+		const { token } = req.query;
+		const { password } = req.body;
+
+		if (!token || typeof(token) !== "string") {
+			return next(new AppError("Invalid or missing token", 401))
+		};
+
+		if (!password || password.length < 6) {
+			return next(new AppError("Password must be atleast 6 characters long", 401))
+		};
+
+		const decoded = AccessToken.verify(token);
+		const hashedPassword = await bcrypt.hash(password, 10);
+		
+		const resetPasswordUser = await Patient.update(
+			{ password: hashedPassword },
+			{ where: { id: decoded.userId } }
+		);
+
+		return Send.success(res, {...resetPasswordUser}, "Password Reset successful")
+	});
 }
 
 export default AuthController;

@@ -1,12 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
 import * as bcrypt from "bcrypt";
-import * as jwt from "jsonwebtoken";
 import Send from "../utils/response.utils";
-import { AppError, Patient } from "../../core";
+import { AccessToken, AppError, EmailVerificationToken, Patient, RefreshToken } from "../../core";
 import { config } from "dotenv";
 import { CatchAsync } from "../../core";
 import { VerificationMailer } from "../services";
 import AuthController from "./auth.controller";
+import type { AuthenticateRequest } from "../middlewares";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -31,19 +31,9 @@ class PatientController {
 				return next(new AppError("Incorrect password", 401));
 			}
 
-			const accessToken = jwt.sign(
-				{ userId: patient.id },
-				process.env.JWT_SECRET,
-				{
-					expiresIn: "15m",
-				}
-			);
+			const accessToken = AccessToken.sign(patient.id);
 
-			const refreshToken = jwt.sign(
-				{ userId: patient.id },
-				process.env.JWT_REFRESH_TOKEN_SECRET,
-				{ expiresIn: "1d" }
-			);
+			const refreshToken = RefreshToken.sign(patient.id);
 
 			await patient.update({
 				refresh_token: refreshToken,
@@ -96,7 +86,7 @@ class PatientController {
 				updatedAt: new Date(),
 			});
 
-			const token = "mayday mayday mayday";
+			const token = EmailVerificationToken.sign(newUser.id);
 			await VerificationMailer.send(email, token);
 
 			return Send.success(
@@ -112,6 +102,26 @@ class PatientController {
 				},
 				"User created successfully"
 			);
+		}
+	);
+
+	static verifiedPatient = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+			const verifiedUserId = req.userId;
+
+			const user = await Patient.update(
+				{ email_verified: true },
+				{
+					where: { id: verifiedUserId },
+				},
+			);
+			if (!user) {
+				return next(new AppError(`User of ID: ${verifiedUserId} not found`, 404));
+			}
+
+			res.status(200).json({
+				message: "User verified successfully",
+			})
 		}
 	);
 
@@ -171,7 +181,7 @@ class PatientController {
 			where: { email }
 		});
 		if (!passwordForgetter) {
-			return next(new AppError(`User with Email: ${email} not found`, 400))
+			return next(new AppError(`User with Email: ${email} not found`, 404))
 		}
 		
 		await AuthController.forgotPassword(email, passwordForgetter.id)

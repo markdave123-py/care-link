@@ -8,7 +8,7 @@ export class VerifyMailerService {
 	};
 
 	private buildVerificationLink(token: string): string {
-		return `${process.env.CLIENT_URL}/?token=${token}`;
+		return `http://localhost:3000/api/v1/auth/patient/verify-user?token=${token}`;
 	};
 
 	private buildHtmlTemplate(link: string): string {

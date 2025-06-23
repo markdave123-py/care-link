@@ -11,10 +11,17 @@ import * as bcrypt from "bcrypt";
 import { CatchAsync } from "../../core";
 import AuthController from "./auth.controller";
 import type { AuthenticateRequest } from "../middlewares";
+import { buildUrl } from "../utils";
+import { googleHp } from "../config";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 class HpController {
+	static initializeGoogleAuth = async (_: Request, res: Response) => {
+		const consent_screen = buildUrl(googleHp);
+		res.redirect(consent_screen);
+	};
+	
 	static getPractitionerToken = async (req: Request, res: Response): Promise<void> => {
 		console.log(req.query);
 
@@ -67,15 +74,18 @@ class HpController {
 			);
 
             const { email, given_name, family_name, email_verified } = await token_info_response.json();
-            const newUser = await HealthPractitioner.create({
-                email,
+            const [ newUser, created ] = await HealthPractitioner.findOrCreate({
+				where: { email },
+                defaults: { email,
                 firstname: given_name,
                 lastname: family_name,
-                password: "null",
+				hp_type_id: "c632348a-db2e-430f-a582-004c9fd773b0",
+                password: null,
                 email_verified,
                 createdAt: new Date(),
                 updatedAt: new Date(),
-            })
+				}
+            });
 
 			return Send.success(
 				res,
@@ -88,7 +98,7 @@ class HpController {
 					createdAt: newUser.createdAt,
 					updatedAt: newUser.updatedAt,
 				},
-				"User created successfully"
+				created ? "User created successfully" : "User already exists"
 			);
 		} catch (err) {
 			console.error("OAuth callback error:", err);
@@ -107,7 +117,7 @@ class HpController {
 			const hp = await HealthPractitioner.findOne({
 				where: { email },
 			});
-			if (!hp) {
+			if (!hp?.password) {
 				return next(new AppError("Invalid credentials", 401));
 			}
 

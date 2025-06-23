@@ -14,7 +14,7 @@ export const env = {
     NODE_ENV: process.env.NODE_ENV || 'development',
     GOOGLE_CLIENT_ID: requireEnv('GOOGLE_CLIENT_ID'),
     GOOGLE_CLIENT_SECRET: requireEnv('GOOGLE_CLIENT_SECRET'),
-    GOOGLE_REDIRECT_URI: requireEnv('GOOGLE_REDIRECT_URI'),
+    GOOGLE_HP_REDIRECT_URI: requireEnv('GOOGLE_HP_REDIRECT_URI'),
     GOOGLE_TOKEN_INFO_URL: requireEnv('GOOGLE_TOKEN_INFO_URL'),
     SESSION_SECRET: requireEnv('SESSION_SECRET'),
     STATE: requireEnv('STATE'),

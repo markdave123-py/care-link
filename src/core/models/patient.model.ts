@@ -15,7 +15,7 @@ export class Patient extends Model<
 	declare email_verified: boolean;
 	declare firstname: string;
 	declare lastname: string;
-	declare password: string;
+	declare password: string | null;
 	declare profile_picture: string | null;
 	declare refresh_token: string | null;
 	declare createdAt: Date;

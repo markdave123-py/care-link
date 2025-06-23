@@ -7,7 +7,8 @@ import AuthController from "../controllers/auth.controller";
 
 const hpRouter = Router();
 
-hpRouter.get('/google', AuthController.initializeGoogleAuth);
+hpRouter.get('/google', HpController.initializeGoogleAuth);
+hpRouter.get('/google/callback', HpController.getPractitionerToken);
 hpRouter.post('/register', RequestValidator.validate(registerHpSchema), HpController.register);
 hpRouter.get('/verify-user', AuthMiddleware.verifyUserEmail, HpController.verifiedHealthPractitioner);
 hpRouter.post('/login', RequestValidator.validate(loginSchema), HpController.login);

@@ -4,8 +4,6 @@ import { AccessToken, AppError, Patient } from "../../core";
 import Send from "../utils/response.utils";
 import { config } from "dotenv";
 import { CatchAsync } from "../../core";
-import { buildUrl } from "../utils";
-import { google } from "../config";
 import { ForgotPasswordLink } from "../services";
 import * as bcrypt from "bcrypt";
 
@@ -61,11 +59,6 @@ class AuthController {
 			return Send.success(res, null, "Logged out successfully");
 		}
 	);
-
-	static initializeGoogleAuth = async (_: Request, res: Response) => {
-		const consent_screen = buildUrl(google);
-		res.redirect(consent_screen);
-	};
 
     static forgotPassword = async (email: string, userId: string) => {
         const token = AccessToken.sign(userId);

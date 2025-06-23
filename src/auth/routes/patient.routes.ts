@@ -7,7 +7,7 @@ import AuthMiddleware from "../middlewares/auth.middleware";
 
 const patientRouter = Router();
 
-patientRouter.get('/google', AuthController.initializeGoogleAuth);
+patientRouter.get('/google', PatientController.initializeGoogleAuth);
 patientRouter.get('/google/callback', PatientController.getPatientToken);
 patientRouter.post('/register', RequestValidator.validate(registerPatientSchema), PatientController.register);
 patientRouter.get('/verify-user', AuthMiddleware.verifyUserEmail, PatientController.verifiedPatient);

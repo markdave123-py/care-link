@@ -13,7 +13,7 @@ export class HealthPractitioner extends Model<
 	declare firstname: string;
 	declare lastname: string;
 	declare hp_type_id: string | null;
-	declare password: string;
+	declare password: string | null;
 	declare profile_picture: string | null;
 	declare identification_means: string | null;
 	declare identification_verified: string | null;
@@ -44,7 +44,7 @@ HealthPractitioner.init(
 		is_verified: DataTypes.BOOLEAN,
 		firstname: DataTypes.STRING,
 		lastname: DataTypes.STRING,
-		hp_type_id: { type: DataTypes.UUID, allowNull: false },
+		hp_type_id: { type: DataTypes.UUID, allowNull: true },
 		password: DataTypes.TEXT,
 		profile_picture: DataTypes.TEXT,
 		identification_means: DataTypes.ENUM(

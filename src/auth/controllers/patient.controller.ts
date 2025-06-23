@@ -7,10 +7,17 @@ import { CatchAsync } from "../../core";
 import { VerificationMailer } from "../services";
 import AuthController from "./auth.controller";
 import type { AuthenticateRequest } from "../middlewares";
+import { buildUrl } from "../utils";
+import { googlePatient } from "../config";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 class PatientController {
+	static initializeGoogleAuth = async (_: Request, res: Response) => {
+		const consent_screen = buildUrl(googlePatient);
+		res.redirect(consent_screen);
+	};
+	
 	static getPatientToken = async (req: Request, res: Response): Promise<void> => {
 		console.log(req.query);
 
@@ -63,14 +70,16 @@ class PatientController {
 			);
 
             const { email, given_name, family_name, email_verified } = await token_info_response.json();
-            const newUser = await Patient.create({
-                email,
+            const [ newUser, created ] = await Patient.findOrCreate({
+				where: { email },
+                defaults: { email,
                 firstname: given_name,
                 lastname: family_name,
                 password: "null",
                 email_verified,
                 createdAt: new Date(),
                 updatedAt: new Date(),
+				}
             })
 
 			return Send.success(
@@ -84,7 +93,7 @@ class PatientController {
 					createdAt: newUser.createdAt,
 					updatedAt: newUser.updatedAt,
 				},
-				"User created successfully"
+				created ? "User created successfully" : "User already exists"
 			);
 		} catch (err) {
 			console.error("OAuth callback error:", err);
@@ -103,7 +112,7 @@ class PatientController {
 			const patient = await Patient.findOne({
 				where: { email },
 			});
-			if (!patient) {
+			if (!patient?.password) {
 				return next(new AppError("Invalid credential", 404));
 			}
 

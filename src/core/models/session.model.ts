@@ -39,8 +39,8 @@ Session.init(
             type: DataTypes.UUID,
         },
         status: {
-            type: DataTypes.ENUM('completed', 'inprogress', 'havefollowup'),
-            defaultValue: 'inprogress',
+            type: DataTypes.ENUM('scheduled', 'completed', 'inprogress', 'havefollowup'), //samuel made changes here because the default value was inprogress and it wasn't correct kind of
+            defaultValue: 'scheduled',
         },
         parentId: {
             type: DataTypes.UUID,

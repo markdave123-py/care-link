@@ -116,6 +116,9 @@ export class PatientSession {
     if (session.patient_id !== patient_id) {
       return next(new AppError("You are not authorized to rate this session", HttpStatus.UNAUTHORIZED));
     }
+    if(session.status != "completed"){
+      return next(new AppError("Session not completed yet", HttpStatus.UNAUTHORIZED))
+    }
 
     session.rating = rating as number;
     await session.save();

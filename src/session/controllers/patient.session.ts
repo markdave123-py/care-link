@@ -1,6 +1,6 @@
 import type { Response, NextFunction } from "express";
 // import Send from "../../auth/utils/response.utils";
-import { RequestSession, Patient, HealthPractitioner, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
+import { RequestSession, Patient, Session, HealthPractitioner, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
 import { MailerService } from "../services";
 // import { where } from "sequelize";
@@ -98,6 +98,30 @@ export class PatientSession {
 
     return responseHandler.success(res, HttpStatus.OK, "Session requests retrieved successfully", sessions);
   });
+
+  public static rateSession = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
+    const { rating } = req.body;
+    const patient_id = req.userId;
+    const { sessionId } = req.params;
+
+    if (!rating) {
+      return next(new AppError("Rating is required", HttpStatus.BAD_REQUEST));
+    }
+
+    const session = await Session.findByPk(sessionId);
+    if (!session) {
+      return next(new AppError("Session not found", HttpStatus.NOT_FOUND));
+    }
+
+    if (session.patient_id !== patient_id) {
+      return next(new AppError("You are not authorized to rate this session", HttpStatus.UNAUTHORIZED));
+    }
+
+    session.rating = rating as number;
+    await session.save();
+
+    return responseHandler.success(res, HttpStatus.OK, "Session rated successfully", session);
+  })
 }
 
 // export const patientSession = new RequestSession();

@@ -12,6 +12,7 @@ const mailerService = new MailerService();
 // }
 
 export class PatientSession {
+  //Allows a patient to request a session
   public static requestSession = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
     const { patient_symptoms, hp_id, ongoing_medication, time} = req.body;
     // const patient_id = req.userId;
@@ -48,7 +49,7 @@ export class PatientSession {
 
     return responseHandler.success(res, HttpStatus.OK, "Session request created successfully", newRequest);
   });
-
+// Allows a patient to cancel a session request
   public static cancelRequest = CatchAsync.wrap(async(req: AuthenticateRequest, res : Response, next: NextFunction) : Promise<void> => {
     const patient_id = req.userId;
     const {requestSession_id} = req.body;
@@ -79,7 +80,7 @@ export class PatientSession {
     await requestSession.save();
     return responseHandler.success(res, HttpStatus.OK, "Session request cancelled successfully", requestSession);
   });
-
+//Allows a patient to get their session request history
   public static getPatientSessions = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
     const patient_id = req.userId;
 
@@ -115,6 +116,9 @@ export class PatientSession {
 
     if (session.patient_id !== patient_id) {
       return next(new AppError("You are not authorized to rate this session", HttpStatus.UNAUTHORIZED));
+    }
+    if(session.status != "completed"){
+      return next(new AppError("Session not completed yet", HttpStatus.UNAUTHORIZED))
     }
 
     session.rating = rating as number;

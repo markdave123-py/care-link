@@ -11,6 +11,7 @@ import hptypeRouter from "../auth/routes/hptype.routes";
 import userRouter from "../auth/routes/user.routes";
 import { patientSessRouter, HpSessRouter } from "../session";
 import {ErrorMiddleware} from "../core";
+import AdminRouter from "../auth/routes/admin.routes";
 export const app = express();
 
 app.use(express.json());

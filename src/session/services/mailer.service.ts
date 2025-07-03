@@ -73,4 +73,15 @@ export class MailerService {
     await this.mailer.sendMail({ to: email, subject, html });
   }
 
+   public async sendPatientSessionAcceptance(email: string, sessionDetails: string): Promise<void> {
+    const subject = "Session Request rejection Notification";
+    const html = `
+      <h2>Session Request Rejection</h2>
+      <p>This is to inform you that a session request has been rejected by the health practitioner for the below reason.</p>
+      <p><strong>Details:</strong> ${sessionDetails}</p>
+      <p>If you have any questions, please contact support.</p>
+    `;
+    await this.mailer.sendMail({ to: email, subject, html });
+  }
+
 }

@@ -12,6 +12,7 @@ hpRouter.get('/google/callback', HpController.getPractitionerToken);
 hpRouter.post('/register', RequestValidator.validate(registerHpSchema), HpController.register);
 hpRouter.get('/verify-user', AuthMiddleware.verifyUserEmail, HpController.verifiedHealthPractitioner);
 hpRouter.post('/login', RequestValidator.validate(loginSchema), HpController.login);
+hpRouter.post('/refresh-access-token', AuthMiddleware.authenticateUser, HpController.refreshAccessToken);
 hpRouter.get('/:id', HpController.getPractitionerById);
 hpRouter.delete('/:id', HpController.deletePractitioner);
 hpRouter.get('/', HpController.getAllPractitioners);

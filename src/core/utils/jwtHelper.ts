@@ -75,7 +75,7 @@ export class EmailVerificationToken {
         return jwt.sign(
             { userId },
             process.env.JWT_EMAIL_TOKEN_SECRET,
-            { expiresIn: "7d" }
+            { expiresIn: "15m" }
         )
     }
 
@@ -91,6 +91,38 @@ export class EmailVerificationToken {
 
     static decode = (token: string) => {
         if (!process.env.JWT_EMAIL_TOKEN_SECRET) {
+            throw new Error("Missing environment variable")
+        }
+        return jwt.decode(
+            token
+        )
+    }
+};
+
+export class InviteAdminToken {
+    static sign = (email: string) => {
+        if (!process.env.JWT_INVITE_ADMIN_SECRET) {
+            throw new Error("Missing environment variable")
+        }
+        return jwt.sign(
+            { email },
+            process.env.JWT_INVITE_ADMIN_SECRET,
+            { expiresIn: "15m" }
+        )
+    }
+
+    static verify = (token: string): { email: string } => {
+        if (!process.env.JWT_INVITE_ADMIN_SECRET) {
+            throw new Error("Missing environment variable")
+        }
+        return jwt.verify(
+            token,
+            process.env.JWT_INVITE_ADMIN_SECRET,
+        ) as { email: string }
+    }
+
+    static decode = (token: string) => {
+        if (!process.env.JWT_INVITE_ADMIN_SECRET) {
             throw new Error("Missing environment variable")
         }
         return jwt.decode(

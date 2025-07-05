@@ -10,8 +10,8 @@ export class AdminInviteService {
         this.mailer = new Mailer();
     };
 
-    private buildAdminInviteLink(): string {
-        return `http://localhost:3000/api/v1/auth/admin/register`;
+    private buildAdminInviteLink(token: string): string {
+        return `http://localhost:3000/api/v1/auth/admin/invite-admin?token=${token}`;
     };
 
     private buildHtmlTemplate(link: string): string {
@@ -32,8 +32,8 @@ export class AdminInviteService {
         `;
     };
 
-    public async send(email: string): Promise<void> {
-        const link = this.buildAdminInviteLink();
+    public async send(email: string, token: string): Promise<void> {
+        const link = this.buildAdminInviteLink(token);
         const html = this.buildHtmlTemplate(link);
 
         await this.mailer.sendMail({

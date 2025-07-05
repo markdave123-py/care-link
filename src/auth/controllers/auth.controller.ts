@@ -10,7 +10,7 @@ import * as bcrypt from "bcrypt";
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 class AuthController {
-	static refreshToken = CatchAsync.wrap(
+	static refreshAccessToken = CatchAsync.wrap(
 		async (req: AuthenticateRequest, res: Response) => {
 			if (!process.env.JWT_REFRESH_TOKEN_SECRET) {
 				throw new Error("Missing Environment variable");

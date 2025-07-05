@@ -11,6 +11,7 @@ import hptypeRouter from "../auth/routes/hptype.routes";
 import userRouter from "../auth/routes/user.routes";
 import { patientSessRouter, HpSessRouter } from "../session";
 import {ErrorMiddleware} from "../core";
+import AdminRouter from "../auth/routes/admin.routes";
 // import AdminRouter from "../auth/routes/admin.routes";
 export const app = express();
 
@@ -23,6 +24,7 @@ app.use(cors({
 }))
 
 app.use("/api/v1", appRouter);
+app.use("/api/v1/auth/admin", AdminRouter);
 app.use("/api/v1/auth/patient", patientRouter);
 app.use("/api/v1/auth/hp", hpRouter);
 app.use("/api/v1", hptypeRouter);

@@ -47,8 +47,8 @@ export class PatientSession {
     if (!newRequest) {
       return next(new AppError("Failed to create session request", HttpStatus.INTERNAL_SERVER_ERROR));
     }
-    const acceptLink = `${process.env.CLIENT_URL}/sessions/${newRequest.id}/accept-request`;
-    const rejectLink = `${process.env.CLIENT_URL}/sessions/${newRequest.id}/decline-request`;
+    // const acceptLink = `${process.env.CLIENT_URL}/sessions/${newRequest.id}/accept-request`;
+    // const rejectLink = `${process.env.CLIENT_URL}/sessions/${newRequest.id}/decline-request`;
 
 
     return responseHandler.success(res, HttpStatus.OK, "Session request created successfully", newRequest);

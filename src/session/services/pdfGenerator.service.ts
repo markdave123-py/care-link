@@ -1,6 +1,6 @@
 // utils/pdfSessionReport.ts
 import PDFDocument from 'pdfkit';
-import { Response } from 'express';
+import type { Response } from 'express';
 
 export const generatePrescriptionPDF = (session: any, res: Response) => {
   const doc = new PDFDocument();

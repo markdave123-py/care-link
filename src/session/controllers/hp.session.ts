@@ -1,5 +1,5 @@
 import type { Response, NextFunction } from "express";
-import { RequestSession, Patient, Session, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
+import { RequestSession, Patient, HealthPractitioner, Session, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
 import { MailerService } from "../services";
 const mailerService = new MailerService();
@@ -75,6 +75,9 @@ export class HpSession{
     public static endSession = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next) =>{
         const {sessionId} = req.params;
         const session = await Session.findByPk(sessionId);
+        if(!session?.prescription || !session?.diagnosis || !session?.health_practitioner_report){
+            return next(new AppError("Session is not yet complete!", HttpStatus.BAD_REQUEST));
+        }
         if(!session){
             return next(new AppError("Session not found!", HttpStatus.NOT_FOUND));
         }
@@ -94,7 +97,7 @@ export class HpSession{
         return responseHandler.success(res, HttpStatus.OK, "Session follow-up initiated successfully!");
     })
 //This endpoint is responsible for updating session details by a health practitioner (protect this route with hp role checking middleware)
-    //This is where the health practitioner can add their report, diagnosis and prescription 
+    //This is where the health practitioner can add their report, diagnosis and prescription and it can only be done when the session is not completed yet
     public static updateSessionDetails = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next: NextFunction) =>{
         const {sessionId} = req.params;
         const {health_practitioner_report, diagnosis, prescription} = req.body;
@@ -102,10 +105,52 @@ export class HpSession{
         if(!session){
             return next(new AppError("Session not found!", HttpStatus.NOT_FOUND));
         }
+        if(session.status == "completed"){
+            return next(new AppError("Session is already completed, you cannot update it anymore!", HttpStatus.BAD_REQUEST));
+        }
         session.health_practitioner_report = health_practitioner_report;
         session.diagnosis = diagnosis;
         session.prescription = prescription;
         await session.save();
         return responseHandler.success(res, HttpStatus.OK, "Session details updated successfully!");
     })
+
+    public static createFollowUpSession = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+        const { parentSessionId } = req.params;
+        const { patient_symptoms } = req.body;
+
+        const parentSession = await Session.findByPk(parentSessionId);
+        if (!parentSession) {
+            return next(new AppError("Parent session not found", HttpStatus.NOT_FOUND));
+        }
+
+        const followUpSession = await Session.create({
+            patient_id: parentSession.patient_id,
+            health_practitioner_id: parentSession.health_practitioner_id,
+            patient_symptoms,
+            status: 'scheduled',
+            parentId: parentSession.id,
+            health_practitioner_report: "",
+            diagnosis: "",
+            prescription: "",
+            rating: 0
+        });
+        if (!followUpSession) {
+            return next(new AppError("Failed to create follow-up session", HttpStatus.INTERNAL_SERVER_ERROR));
+        }
+        // Send a notification to the patient about the follow-up session
+        const patient = await Patient.findByPk(followUpSession.patient_id);
+        if (patient) {
+            await mailerService.sendPatientSessionAcceptance(patient.email, `A follow-up session has been created for you with symptoms: ${parentSession.patient_symptoms}`);
+        }
+        // Send a notification to the health practitioner as well
+        const healthPractitioner = await HealthPractitioner.findByPk(followUpSession.health_practitioner_id);
+        if (healthPractitioner) {
+            await mailerService.sendPatientSessionAcceptance(healthPractitioner.email, `A follow-up session has been created for patient: ${patient?.firstname} ${patient?.lastname}`);
+        }
+        parentSession.status = "havefollowup";
+        await parentSession.save();
+        return responseHandler.success(res, HttpStatus.CREATED, "Follow-up session created", followUpSession);
+    });
+
 }

@@ -3,6 +3,7 @@ import type { Response, NextFunction } from "express";
 import { RequestSession, Patient, Session, HealthPractitioner, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
 import { MailerService } from "../services";
+// import { generatePrescriptionPDF } from "../services";
 // import { where } from "sequelize";
 const mailerService = new MailerService();
 // declare module "express-serve-static-core" {
@@ -46,13 +47,16 @@ export class PatientSession {
     if (!newRequest) {
       return next(new AppError("Failed to create session request", HttpStatus.INTERNAL_SERVER_ERROR));
     }
+    // const acceptLink = `${process.env.CLIENT_URL}/sessions/${newRequest.id}/accept-request`;
+    // const rejectLink = `${process.env.CLIENT_URL}/sessions/${newRequest.id}/decline-request`;
+
 
     return responseHandler.success(res, HttpStatus.OK, "Session request created successfully", newRequest);
   });
 // Allows a patient to cancel a session request
   public static cancelRequest = CatchAsync.wrap(async(req: AuthenticateRequest, res : Response, next: NextFunction) : Promise<void> => {
     const patient_id = req.userId;
-    const {requestSession_id} = req.body;
+    const {requestSession_id} = req.params;
     const requestSession = await RequestSession.findByPk(requestSession_id);
     const patient = await Patient.findByPk(patient_id);
     const healthPractitioner = await HealthPractitioner.findByPk(requestSession?.health_practitioner_id);
@@ -125,6 +129,21 @@ export class PatientSession {
     await session.save();
 
     return responseHandler.success(res, HttpStatus.OK, "Session rated successfully", session);
+  })
+
+  public static downloadPrescription = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
+    const { sessionId } = req.params;
+
+    const session = await Session.findByPk(sessionId);
+    if (!session) {
+      return next(new AppError("Session not found", HttpStatus.NOT_FOUND));
+    }
+
+    if (session.patient_id !== req.userId) {
+      return next(new AppError("You are not authorized to download this prescription", HttpStatus.UNAUTHORIZED));
+    }
+
+    // generatePrescriptionPDF(session, res);
   })
 }
 

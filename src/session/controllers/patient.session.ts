@@ -3,7 +3,7 @@ import type { Response, NextFunction } from "express";
 import { RequestSession, Patient, Session, HealthPractitioner, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
 import { MailerService } from "../services";
-import { generatePrescriptionPDF } from "../services";
+// import { generatePrescriptionPDF } from "../services";
 // import { where } from "sequelize";
 const mailerService = new MailerService();
 // declare module "express-serve-static-core" {
@@ -143,7 +143,7 @@ export class PatientSession {
       return next(new AppError("You are not authorized to download this prescription", HttpStatus.UNAUTHORIZED));
     }
 
-    generatePrescriptionPDF(session, res);
+    // generatePrescriptionPDF(session, res);
   })
 }
 

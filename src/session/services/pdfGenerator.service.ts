@@ -2,7 +2,20 @@
 import PDFDocument from 'pdfkit';
 import type { Response } from 'express';
 
-export const generatePrescriptionPDF = (session: any, res: Response) => {
+interface SessionPDF {
+  id: string | number;
+  createdAt: Date | string;
+  diagnosis?: string;
+  prescription?: string;
+  patient: {
+    firstname: string;
+    lastname: string;
+    email: string;
+  };
+}
+
+
+export const generatePrescriptionPDF = (session: SessionPDF, res: Response) => {
   const doc = new PDFDocument();
 
   res.setHeader('Content-Type', 'application/pdf');

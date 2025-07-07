@@ -10,7 +10,7 @@ import hptypeRouter from "../auth/routes/hptype.routes";
 import { patientSessRouter, HpSessRouter } from "../session";
 import {ErrorMiddleware} from "../core";
 import AdminRouter from "../auth/routes/admin.routes";
-import { SmartRouter } from "src/smart-sys/routes";
+import { SmartRouter } from "../smart-sys/routes";
 export const app = express();
 
 app.use(express.json());

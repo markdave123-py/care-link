@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { QueryTypes, Op } from 'sequelize';
-import { HealthPractitioner, sequelize } from 'src/core';
+import { HealthPractitioner, sequelize } from '../../core';
 
 
 export interface HPTypeMatch {

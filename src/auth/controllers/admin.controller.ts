@@ -188,7 +188,6 @@ export class AdminController {
 			return next(new AppError("User is already an admin", 400));
 		}
 
-		// Continue with admin creation (based on body inputs)
 		const { firstname, lastname, password } = req.body;
 
 		const hashedPassword = await bcrypt.hash(password, 10);

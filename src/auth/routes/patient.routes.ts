@@ -16,9 +16,8 @@ patientRouter.post('/refresh-access-token', AuthMiddleware.authenticateUser, Pat
 patientRouter.get('/:id', PatientController.getPatientById);
 patientRouter.delete('/:id', PatientController.deletePatient);
 patientRouter.get('/', PatientController.getAllPatients);
-patientRouter.post('/forgot-password', PatientController.forgotPassword);
 patientRouter.post('/logout', AuthMiddleware.authenticateUser, AuthController.logout);
-
-patientRouter.post('/reset-password', AuthController.resetPassword);
+patientRouter.post('/forgot-password', PatientController.forgotPassword);
+patientRouter.post('/reset-password', PatientController.resetPassword);
 
 export default patientRouter;

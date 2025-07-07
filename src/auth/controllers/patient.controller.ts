@@ -311,6 +311,29 @@ class PatientController {
 
 		return Send.success(res, null, "Link to reset password sent successfully")
 	});
+
+	static resetPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {
+		const { token } = req.query;
+		const { password } = req.body;
+
+		if (!token || typeof(token) !== "string") {
+			return next(new AppError("Invalid or missing token", 401))
+		};
+
+		if (!password || password.length < 6) {
+			return next(new AppError("Password must be atleast 6 characters long", 401))
+		};
+
+		const decoded = AccessToken.verify(token);
+		const hashedPassword = await bcrypt.hash(password, 10);
+		
+		const resetUserPassword = await Patient.update(
+			{ password: hashedPassword },
+			{ where: { id: decoded.userId } }
+		);
+
+		return Send.success(res, {...resetUserPassword}, "Password Reset successful")
+	});
 }
 
 export default PatientController;

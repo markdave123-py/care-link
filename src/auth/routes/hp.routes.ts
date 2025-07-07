@@ -16,7 +16,8 @@ hpRouter.post('/refresh-access-token', AuthMiddleware.authenticateUser, HpContro
 hpRouter.get('/:id', HpController.getPractitionerById);
 hpRouter.delete('/:id', HpController.deletePractitioner);
 hpRouter.get('/', HpController.getAllPractitioners);
-hpRouter.post('/forgot-password', HpController.forgotPassword);
 hpRouter.post('/logout', AuthMiddleware.authenticateUser, AuthController.logout);
+hpRouter.post('/forgot-password', HpController.forgotPassword);
+hpRouter.post('/reset-password', AuthController.resetPassword);
 
 export default hpRouter;

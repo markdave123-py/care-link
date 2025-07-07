@@ -1,0 +1,33 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Mailer = void 0;
+const nodemailer = require("nodemailer");
+class Mailer {
+    constructor() {
+        this.transporter = nodemailer.createTransport({
+            host: process.env.EMAIL_HOST,
+            port: Number(process.env.EMAIL_PORT),
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASSWORD,
+            },
+        });
+    }
+    async sendMail({ to, subject, html }) {
+        try {
+            await this.transporter.sendMail({
+                from: `"Healthcare Scheduler" <${process.env.EMAIL_USER}>`,
+                to,
+                subject,
+                html,
+            });
+            console.log(`✅ Email sent to ${to}`);
+        }
+        catch (error) {
+            console.error("❌ Failed to send email:", error);
+            throw new Error("Email sending failed");
+        }
+    }
+}
+exports.Mailer = Mailer;
+//# sourceMappingURL=mailer.js.map

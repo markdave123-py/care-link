@@ -1,5 +1,5 @@
 import type { Response, NextFunction } from "express";
-import { RequestSession, Patient, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
+import {AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
 import Rag from "../services/rag.service";
 

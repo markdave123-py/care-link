@@ -8,7 +8,7 @@ class HpTypeController {
 	static createType = CatchAsync.wrap(async (req: Request, res: Response) => {
 		const { profession } = req.body;
 
-		let embedding = await ragService.getEmbedding(profession)
+		const embedding = await ragService.getEmbedding(profession)
 
 		const hptype = await HPType.create({
 			name: profession,

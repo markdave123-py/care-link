@@ -11,6 +11,7 @@ export class Admin extends Model<
 	declare firstname: string;
 	declare lastname: string;
 	declare password: string;
+	declare refresh_token: string | null;
 }
 
 Admin.init(
@@ -24,6 +25,7 @@ Admin.init(
 		firstname: DataTypes.STRING,
 		lastname: DataTypes.STRING,
 		password: DataTypes.TEXT,
+		refresh_token: DataTypes.STRING,
 	},
 	{
 		sequelize,

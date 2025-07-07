@@ -6,7 +6,7 @@ import { associateModels } from "../core/models/associationModels";
 import "../core/models/admin.model";
 
 export const startApp = async () => {
-  await sequelize.authenticate();
+  // await sequelize.authenticate();
   console.log("Connected to DB");
 
   associateModels();

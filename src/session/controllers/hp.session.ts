@@ -1,20 +1,22 @@
 import type { Response, NextFunction } from "express";
-import { RequestSession, Patient, Session, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
+import { RequestSession, Patient, HealthPractitioner, Session, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
 import { MailerService } from "../services";
 const mailerService = new MailerService();
 
 
 export class HpSession{
-//protect this route with hp role checking middleware
+//This endpoint is responsible for declining session request (protect this route with hp role checking middleware)
     public static declineRequest = CatchAsync.wrap(async (req:AuthenticateRequest, res: Response, next: NextFunction) => {
         const hp_id = req.userId;
-        const {request_session_id, reason} = req.body;
+        const { request_session_id } = req.params
+        const { reason } = req.body;
+
         const request_session = await RequestSession.findByPk(request_session_id);
         if (!request_session) {
             return next(new AppError("Session request not found!", HttpStatus.NOT_FOUND));
         }
-        if(request_session.health_practitioner_id !== hp_id){
+        if (request_session.health_practitioner_id !== hp_id){
             return next(new AppError("You are not authorized to do this!", HttpStatus.UNAUTHORIZED));
         }
         const patient_id = request_session.patient_id;
@@ -28,7 +30,7 @@ export class HpSession{
         return responseHandler.success(res, HttpStatus.OK, "Session Request declined successfully!");
 
     })
-//protect this route with hp role checking middleware
+//This endpoint is responsible for accepting a session request (protect this route with hp role checking middleware)
     public static acceptRequest = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next: NextFunction) =>{
         const hp_id = req.userId;
         const {request_session_id} = req.params;
@@ -43,7 +45,7 @@ export class HpSession{
         }
         request_session.status = "accepted";
         await request_session.save();
-        await Session.create({
+        const newSession = await Session.create({
             patient_id: request_session.patient_id,
             health_practitioner_id: hp_id,
             patient_symptoms: request_session.patient_symptoms,
@@ -53,10 +55,10 @@ export class HpSession{
             prescription: "",
             rating: 0
         })
-        await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request ${request_session} has been accepted! `)
-        return responseHandler.success(res, HttpStatus.OK, "Session Request declined successfully!");
+        await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request with  ${request_session} has been accepted! `)
+        return responseHandler.success(res, HttpStatus.OK, "Session Request accepted successfully!", newSession);
     })
-//protect this route with hp role checking middleware
+//This endpoint is responsible for starting a session officailly also means kicking the session off by a hp (protect this route with hp role checking middleware)
     public static startSession = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next) =>{
         // const hp_id = req.userId;
         const {sessionId} = req.params;
@@ -69,10 +71,13 @@ export class HpSession{
         return responseHandler.success(res, HttpStatus.OK, "Session started successfully!");
 
     })
-//protect this route with hp role checking middleware
+//The purpose of this route is to end the session officially when the meeting is over(protect this route with hp role checking middleware)
     public static endSession = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next) =>{
         const {sessionId} = req.params;
         const session = await Session.findByPk(sessionId);
+        if(!session?.prescription || !session?.diagnosis || !session?.health_practitioner_report){
+            return next(new AppError("Session is not yet complete!", HttpStatus.BAD_REQUEST));
+        }
         if(!session){
             return next(new AppError("Session not found!", HttpStatus.NOT_FOUND));
         }
@@ -80,7 +85,7 @@ export class HpSession{
         await session.save();
         return responseHandler.success(res, HttpStatus.OK, "Session ended successfully!");
     })
-//protect this route with hp role checking middleware
+//The purpose of this route is incase there is a followup session, to link them up(protect this route with hp role checking middleware)
     public static followupSession = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next: NextFunction) =>{
         const {sessionId} = req.params;
         const session = await Session.findByPk(sessionId);
@@ -91,7 +96,8 @@ export class HpSession{
         await session.save();
         return responseHandler.success(res, HttpStatus.OK, "Session follow-up initiated successfully!");
     })
-    
+//This endpoint is responsible for updating session details by a health practitioner (protect this route with hp role checking middleware)
+    //This is where the health practitioner can add their report, diagnosis and prescription and it can only be done when the session is not completed yet
     public static updateSessionDetails = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next: NextFunction) =>{
         const {sessionId} = req.params;
         const {health_practitioner_report, diagnosis, prescription} = req.body;
@@ -99,10 +105,52 @@ export class HpSession{
         if(!session){
             return next(new AppError("Session not found!", HttpStatus.NOT_FOUND));
         }
+        if(session.status == "completed"){
+            return next(new AppError("Session is already completed, you cannot update it anymore!", HttpStatus.BAD_REQUEST));
+        }
         session.health_practitioner_report = health_practitioner_report;
         session.diagnosis = diagnosis;
         session.prescription = prescription;
         await session.save();
         return responseHandler.success(res, HttpStatus.OK, "Session details updated successfully!");
     })
+
+    public static createFollowUpSession = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+        const { parentSessionId } = req.params;
+        const { patient_symptoms } = req.body;
+
+        const parentSession = await Session.findByPk(parentSessionId);
+        if (!parentSession) {
+            return next(new AppError("Parent session not found", HttpStatus.NOT_FOUND));
+        }
+
+        const followUpSession = await Session.create({
+            patient_id: parentSession.patient_id,
+            health_practitioner_id: parentSession.health_practitioner_id,
+            patient_symptoms,
+            status: 'scheduled',
+            parentId: parentSession.id,
+            health_practitioner_report: "",
+            diagnosis: "",
+            prescription: "",
+            rating: 0
+        });
+        if (!followUpSession) {
+            return next(new AppError("Failed to create follow-up session", HttpStatus.INTERNAL_SERVER_ERROR));
+        }
+        // Send a notification to the patient about the follow-up session
+        const patient = await Patient.findByPk(followUpSession.patient_id);
+        if (patient) {
+            await mailerService.sendPatientSessionAcceptance(patient.email, `A follow-up session has been created for you with symptoms: ${parentSession.patient_symptoms}`);
+        }
+        // Send a notification to the health practitioner as well
+        const healthPractitioner = await HealthPractitioner.findByPk(followUpSession.health_practitioner_id);
+        if (healthPractitioner) {
+            await mailerService.sendPatientSessionAcceptance(healthPractitioner.email, `A follow-up session has been created for patient: ${patient?.firstname} ${patient?.lastname}`);
+        }
+        parentSession.status = "havefollowup";
+        await parentSession.save();
+        return responseHandler.success(res, HttpStatus.CREATED, "Follow-up session created", followUpSession);
+    });
+
 }

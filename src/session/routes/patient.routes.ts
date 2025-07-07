@@ -1,8 +1,13 @@
 import {Router} from "express";
 import { PatientSession} from "../controllers";
 import AuthMiddleware from "../../auth/middlewares/auth.middleware";
-export const patientSession = Router();
-patientSession.use(AuthMiddleware.authenticateUser);
-patientSession.post("/request", PatientSession.requestSession);
-patientSession.get("/", PatientSession.getPatientSessions);
-patientSession.patch("/cancel", PatientSession.cancelRequest);
+export const patientSessRouter = Router();
+
+// This router is for patient session related routes
+patientSessRouter.use(AuthMiddleware.authenticateUser);
+
+patientSessRouter.post("/request", PatientSession.requestSession);
+
+patientSessRouter.get("/", PatientSession.getPatientSessions);
+
+patientSessRouter.patch("/:requestSession_id/cancel", PatientSession.cancelRequest);

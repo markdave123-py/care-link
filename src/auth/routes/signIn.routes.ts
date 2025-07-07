@@ -1,9 +1,9 @@
 import { Router } from "express";
-import AuthController from "../controllers/auth.controller";
+// import HpController from "../controllers/hp.controller";
 
 const signInRouter = Router();
 
-signInRouter.get("/google", AuthController.initializeGoogleAuth);
-signInRouter.get("/google/callback", AuthController.getToken);
+// signInRouter.get("/google", HpController.initializeGoogleAuth);
+// signInRouter.get("/google/callback", HpController.getPractitionerToken);
 
 export default signInRouter;

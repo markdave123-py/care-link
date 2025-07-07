@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { QueryTypes, Op } from 'sequelize';
-import { HPType, HealthPractitioner, sequelize } from 'src/core';
+import { HealthPractitioner, sequelize } from 'src/core';
 
 
 export interface HPTypeMatch {
@@ -12,10 +12,9 @@ export default class Rag {
 
   private readonly openai: OpenAI;
   private readonly model: string;
-  private readonly HpType: HPType
 
   constructor(
-    apiKey = process.env.OPENAI_API_KEY!,  
+    apiKey = process.env.OPENAI_APIKEY!,  
     model = process.env.OPENAI_MODEL!,              
   ) {
     if (!apiKey) throw new Error('OPENAI_API_KEY is missing');
@@ -27,7 +26,7 @@ export default class Rag {
    * Get a 768-dimensional embedding for the given text.
    * @param text Free-form input to embed.
    */
-  private async getEmbedding(text: string): Promise<number[]> {
+  async getEmbedding(text: string): Promise<number[]> {
     const { data } = await this.openai.embeddings.create({
       model: this.model,
       input: text.trim(),
@@ -60,8 +59,6 @@ export default class Rag {
         return []
     }
     const typeIds = hpMatches.map(m => m.id);
-
-    let hps: HealthPractitioner[] = []
 
     const practitioner = await HealthPractitioner.findAll({
       where: {hp_type_id: {[Op.in]: typeIds, },

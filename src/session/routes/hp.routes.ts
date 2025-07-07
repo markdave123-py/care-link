@@ -1,10 +1,10 @@
 import {Router} from "express";
 import { HpSession} from "../controllers";
 import AuthMiddleware from "../../auth/middlewares/auth.middleware";
-
-
-export const HpRouter = Router();
-HpRouter.use(AuthMiddleware.authenticateUser);
-HpRouter.patch("/start-session", HpSession.startSession);
-HpRouter.patch("/end-session", HpSession.endSession);
-HpRouter.patch("/update-sesssion", HpSession.updateSessionDetails);
+export const HpSessRouter = Router();
+HpSessRouter.use(AuthMiddleware.authenticateUser);
+HpSessRouter.post("/:sessionId/start-session", HpSession.startSession);
+HpSessRouter.patch("/end-session", HpSession.endSession);
+HpSessRouter.patch("/:request_session_id/accept-request", HpSession.acceptRequest);
+HpSessRouter.patch("/:decline-request", HpSession.declineRequest);
+HpSessRouter.patch("/:sessionId/update-sesssion", HpSession.updateSessionDetails);

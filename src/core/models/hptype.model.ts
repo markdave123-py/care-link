@@ -20,8 +20,7 @@ HPType.init(
         },
         name: DataTypes.STRING,
         embedding: {
-            type: DataTypes.ARRAY(DataTypes.FLOAT),
-            // type: 'vector(768)' as unknown as DataTypes.AbstractDataType,
+            type: 'vector(768)' as unknown as DataTypes.AbstractDataType,
             allowNull: true,
           },
     },

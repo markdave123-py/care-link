@@ -23,4 +23,6 @@ export const env = {
     JWT_REFRESH_TOKEN_SECRET: requireEnv('JWT_REFRESH_TOKEN_SECRET'),
     JWT_REFRESH_TOKEN_EXPIRES_IN: requireEnv('JWT_REFRESH_TOKEN_EXPIRES_IN'),
     POSTGRES_URI: requireEnv('POSTGRES_URI'),
+    OPENAI_APIKEY: requireEnv('OPENAI_APIKEY'),
+    OPENAI_MODEL: requireEnv('OPENAI_MODEL')
 } as const;

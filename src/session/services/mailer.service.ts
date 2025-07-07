@@ -50,6 +50,17 @@ export class MailerService {
     await this.mailer.sendMail({ to: email, subject, html });
   }
 
+  public async sendPatientSessionAcceptance(email: string, sessionDetails: string): Promise<void> {
+    const subject = "Session Acceptance Notification";
+    const html = `
+      <h2>Session Accepted</h2>
+      <p>This is to inform you that your session request has been accepted.</p>
+      <p><strong>Details:</strong> ${sessionDetails}</p>
+      <p>If you have any questions, please contact support.</p>
+    `;
+    await this.mailer.sendMail({ to: email, subject, html });
+  }
+
 
   public async sendPractitionerCancelationEmail(email: string, sessionDetails: string): Promise<void> {
     const subject = "Session Cancelation Notification";

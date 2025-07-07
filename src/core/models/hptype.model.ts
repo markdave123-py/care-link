@@ -8,6 +8,7 @@ export class HPType extends Model<
 > {
     declare id: CreationOptional<string>;
     declare name: string;
+    declare embedding: number[] | null;
 }
 
 HPType.init(
@@ -18,6 +19,10 @@ HPType.init(
             defaultValue: DataTypes.UUIDV4
         },
         name: DataTypes.STRING,
+        embedding: {
+            type: 'vector(768)' as unknown as DataTypes.AbstractDataType,
+            allowNull: true,
+          },
     },
     {
     sequelize,

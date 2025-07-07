@@ -12,6 +12,7 @@ import userRouter from "../auth/routes/user.routes";
 import { patientSession } from "../session";
 import {ErrorMiddleware} from "../core";
 import AdminRouter from "../auth/routes/admin.routes";
+import { SmartRouter } from "src/smart-sys/routes";
 export const app = express();
 
 app.use(express.json());
@@ -29,4 +30,5 @@ app.use("/api/v1", hptypeRouter);
 app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/sessions", patientSession);
 app.use("/api/v1/auth/admin", AdminRouter);
+app.use("/api/v1/smart-sys", SmartRouter)
 app.use(ErrorMiddleware.handleError);

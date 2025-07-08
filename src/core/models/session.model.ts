@@ -17,6 +17,7 @@ export class Session extends Model<
     declare diagnosis: string;
     declare prescription: string;
     declare rating: number;
+    declare time: CreationOptional<Date>;
 }
 
 Session.init(
@@ -57,6 +58,7 @@ Session.init(
         rating: {
             type: DataTypes.INTEGER,
         },
+        time : DataTypes.DATE,
     },
     {
         sequelize,

@@ -9,6 +9,7 @@ import AuthController from "./auth.controller";
 import type { AuthenticateRequest } from "../middlewares";
 import { buildUrl } from "../utils";
 import { googlePatient } from "../config";
+import { PatientMapper } from "../mappers/patient.mapper";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -76,24 +77,37 @@ class PatientController {
                 firstname: given_name,
                 lastname: family_name,
                 password: "null",
+				refresh_token: "",
                 email_verified,
                 createdAt: new Date(),
                 updatedAt: new Date(),
 				}
-            })
+            });
+
+			const accessToken = AccessToken.sign(newUser.id);
+			const refreshToken = RefreshToken.sign(newUser.id);
+			
+			newUser.refresh_token = refreshToken;
+			await newUser.save();
+
+			res.cookie("accessToken", accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 15 * 60 * 1000, // 15 minutes
+			});
+
+			res.cookie("refreshToken", refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+			});
 
 			return Send.success(
 				res,
-				{
-					id: newUser.id,
-					firstname: newUser.firstname,
-					lastname: newUser.lastname,
-					email: newUser.email,
-					refreshToken: newUser.refresh_token,
-					createdAt: newUser.createdAt,
-					updatedAt: newUser.updatedAt,
-				},
-				created ? "User created successfully" : "User already exists"
+				created ? "User created successfully" : "User already exists",
+				PatientMapper.patientResponse(newUser),
 			);
 		} catch (err) {
 			console.error("OAuth callback error:", err);
@@ -142,13 +156,11 @@ class PatientController {
 				sameSite: "strict",
 			});
 
-			return Send.success(res, {
-				id: patient.id,
-				firstname: patient.firstname,
-				email: patient.email,
-				createdAt: patient.createdAt,
-				UpdatedAt: patient.updatedAt,
-			});
+			return Send.success(
+				res,
+				"Logged in successfully",
+				PatientMapper.patientResponse(patient),
+			);
 		}
 	);
 
@@ -166,7 +178,7 @@ class PatientController {
 
 			const hashedpassword = await bcrypt.hash(password, 10);
 
-			const newUser = await Patient.create({
+			const newPatient = await Patient.create({
 				email,
 				firstname,
 				lastname,
@@ -176,21 +188,33 @@ class PatientController {
 				updatedAt: new Date(),
 			});
 
-			const token = EmailVerificationToken.sign(newUser.id);
+			const accessToken = AccessToken.sign(newPatient.id);
+			const refreshToken = RefreshToken.sign(newPatient.id);
+			
+			newPatient.refresh_token = refreshToken;
+			await newPatient.save();
+
+			res.cookie("accessToken", accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 15 * 60 * 1000, // 15 minutes
+			});
+
+			res.cookie("refreshToken", refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+			});
+
+			const token = EmailVerificationToken.sign(newPatient.id);
 			await VerificationMailer.send(email, token);
 
 			return Send.success(
 				res,
-				{
-					id: newUser.id,
-					firstname: newUser.firstname,
-					lastname: newUser.lastname,
-					email: newUser.email,
-					refreshToken: newUser.refresh_token,
-					createdAt: newUser.createdAt,
-					updatedAt: newUser.updatedAt,
-				},
-				"User created successfully"
+				"User created successfully",
+				PatientMapper.patientResponse(newPatient),
 			);
 		}
 	);
@@ -209,10 +233,10 @@ class PatientController {
 			});
 
 			if (!user || !refreshToken) {
-				return Send.unauthorized(res, null, "Request Token not found");
+				return Send.unauthorized(res, "Request Token not found");
 			}
 			if (user.refresh_token !== refreshToken) {
-				return Send.unauthorized(res, null, "Invalid refresh token");
+				return Send.unauthorized(res, "Invalid refresh token");
 			}
 
 			const accessToken = AccessToken.sign(userId);
@@ -224,7 +248,11 @@ class PatientController {
 				sameSite: "strict",
 			});
 
-			return Send.success(res, null, "Access Token refreshed successfully");
+			return Send.success(
+				res, 
+				"Access Token refreshed successfully",
+				PatientMapper.patientResponse(user),
+			);
 		}
 	);
 
@@ -242,9 +270,10 @@ class PatientController {
 				return next(new AppError(`User of ID: ${verifiedUserId} not found`, 404));
 			}
 
-			res.status(200).json({
-				message: "User verified successfully",
-			})
+			return Send.success(
+				res,
+				"User verified successfully",
+			)
 		}
 	);
 
@@ -262,7 +291,11 @@ class PatientController {
 				);
 			}
 
-			return Send.success(res, { patient });
+			return Send.success(
+				res,
+				`Patient with ID: ${userId}`,
+				PatientMapper.patientResponse(patient),
+			);
 		}
 	);
 
@@ -273,7 +306,11 @@ class PatientController {
 				return next(new AppError("No Patient seen", 404));
 			}
 
-			return Send.success(res, { allPatients });
+			return Send.success(
+				res,
+				"All Patients",
+				{ allPatients },
+			);
 		}
 	);
 
@@ -293,7 +330,11 @@ class PatientController {
 
 			await patient.destroy();
 
-			return Send.success(res, null, "Patient deleted successfully");
+			return Send.success(
+				res,
+				"Patient deleted successfully",
+				PatientMapper.patientResponse(patient),
+			);
 		}
 	);
 
@@ -309,7 +350,7 @@ class PatientController {
 		
 		await AuthController.forgotPassword(email, passwordForgetter.id)
 
-		return Send.success(res, null, "Link to reset password sent successfully")
+		return Send.success(res, "Link to reset password sent successfully")
 	});
 
 	static resetPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {
@@ -332,7 +373,11 @@ class PatientController {
 			{ where: { id: decoded.userId } }
 		);
 
-		return Send.success(res, {...resetUserPassword}, "Password Reset successful")
+		return Send.success(
+			res,
+			"Password Reset successful",
+			{...resetUserPassword},
+		)
 	});
 }
 

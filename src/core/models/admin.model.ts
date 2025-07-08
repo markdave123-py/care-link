@@ -10,8 +10,10 @@ export class Admin extends Model<
 	declare email: string;
 	declare firstname: string;
 	declare lastname: string;
-	declare password: string;
+	declare password: string | null;
 	declare refresh_token: string | null;
+	declare createdAt: Date;
+	declare updatedAt: Date;
 }
 
 Admin.init(
@@ -26,6 +28,8 @@ Admin.init(
 		lastname: DataTypes.STRING,
 		password: DataTypes.TEXT,
 		refresh_token: DataTypes.STRING,
+		createdAt: DataTypes.DATE,
+		updatedAt: DataTypes.DATE,
 	},
 	{
 		sequelize,

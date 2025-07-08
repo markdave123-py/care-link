@@ -10,5 +10,10 @@ AdminRouter.post('/refresh-access-token', AuthMiddleware.authenticateUser, Admin
 AdminRouter.post('/request-admin', AuthMiddleware.authenticateAdmin, AdminController.requestAdmin);
 AdminRouter.post('/invite-admin', AdminController.inviteAdmin);
 AdminRouter.post('/logout', AdminController.logout);
+AdminRouter.get('/:id', AdminController.getAdminById);
+AdminRouter.delete('/:id', AdminController.deleteAdmin);
+AdminRouter.get('/', AdminController.getAllAdmins);
+AdminRouter.post('/forgot-password', AdminController.forgotPassword);
+AdminRouter.post('/reset-password', AdminController.resetPassword);
 
 export default AdminRouter;

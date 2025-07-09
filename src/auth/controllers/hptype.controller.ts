@@ -25,11 +25,11 @@ class HpTypeController {
 
 		return Send.success(
 			res,
+			"Created a new hptype successfully",
 			{
 				id: hptype.id,
 				name: hptype.name,
 			},
-			"Created a new hptype successfully"
 		);
 	});
 }

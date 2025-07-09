@@ -111,6 +111,19 @@ export class MailerService {
     );
     await this.mailer.sendMail({ to: email, subject, html });
   }
+
+  public async sendPractitionerFollowUpSessionAlert(email: string, sessionDetails: string, patientName : string): Promise<void> {
+    const subject = "🔔 Follow-Up Session Alert";
+    const html = this.wrapTemplate(
+      "Follow-Up Session Scheduled",
+      `
+        <p>You have booked a follow-up session for patient ${patientName}.</p>
+        <p><strong>Details:</strong> ${sessionDetails}</p>
+        <p>Please check your dashboard for more information.</p>
+      `
+    );
+    await this.mailer.sendMail({ to: email, subject, html });
+  }
 }
 
 

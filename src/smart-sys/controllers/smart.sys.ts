@@ -1,7 +1,7 @@
 import type { Response, NextFunction } from "express";
 import {AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
-import Rag from "../services/rag.service";
+import type Rag from "../services/rag.service";
 
 
 export class SmartSys{

@@ -15,6 +15,7 @@ import { buildUrl } from "../utils";
 import { googleHp } from "../config";
 import { requireFields } from "../../common/validation";
 import { processFiles } from "../../common/upload";
+import { HpMapper } from "../mappers/hp.mapper";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -82,6 +83,7 @@ class HpController {
                 firstname: given_name,
                 lastname: family_name,
 				hp_type_id: "c632348a-db2e-430f-a582-004c9fd773b0",
+				refresh_token: "",
                 password: null,
                 email_verified,
                 createdAt: new Date(),
@@ -89,18 +91,30 @@ class HpController {
 				}
             });
 
+			const accessToken = AccessToken.sign(newUser.id);
+			const refreshToken = RefreshToken.sign(newUser.id);
+			
+			newUser.refresh_token = refreshToken;
+			await newUser.save();
+
+			res.cookie("accessToken", accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 15 * 60 * 1000, // 15 minutes
+			});
+
+			res.cookie("refreshToken", refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+			});
+
 			return Send.success(
 				res,
-				{
-					id: newUser.id,
-					firstname: newUser.firstname,
-					lastname: newUser.lastname,
-					email: newUser.email,
-					refreshToken: newUser.refresh_token,
-					createdAt: newUser.createdAt,
-					updatedAt: newUser.updatedAt,
-				},
-				created ? "User created successfully" : "User already exists"
+				created ? "User created successfully" : "User already exists",
+				HpMapper.hpResponse(newUser),
 			);
 		} catch (err) {
 			console.error("OAuth callback error:", err);
@@ -149,13 +163,7 @@ class HpController {
 				sameSite: "strict",
 			});
 
-			return Send.success(res, {
-				id: hp.id,
-				firstname: hp.firstname,
-				email: hp.email,
-				createdAt: hp.createdAt,
-				UpdatedAt: hp.updatedAt,
-			});
+			return Send.success(res, "User Logged in successfully", HpMapper.hpResponse(hp))
 		}
 	);
 
@@ -181,7 +189,7 @@ class HpController {
 			});
 			  
 			const hashedpassword = await bcrypt.hash(password, 10);
-
+			
 			const newUser = await HealthPractitioner.create({
 				email,
 				firstname,
@@ -191,13 +199,35 @@ class HpController {
 				passport: docUrls.passport,
 				profile_picture: docUrls.profile_picture,
 				idcard: docUrls.idcard,
+				refresh_token: "",
 				email_verified: false,
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			});
 
+			const accessToken = AccessToken.sign(newUser.id);
+			const refreshToken = RefreshToken.sign(newUser.id);
+
+			newUser.refresh_token = refreshToken;
+			await newUser.save();
+
+			res.cookie("accessToken", accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 15 * 60 * 1000, // 15 minutes
+			});
+
+			res.cookie("refreshToken", refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+			});
+			
 			return Send.success(
 				res,
+				"User created successfully",
 				{
 					id: newUser.id,
 					firstname: newUser.firstname,
@@ -211,7 +241,6 @@ class HpController {
 					createdAt: newUser.createdAt,
 					updatedAt: newUser.updatedAt,
 				},
-				"User created successfully"
 			);
 		}
 	);
@@ -230,10 +259,10 @@ class HpController {
 			});
 
 			if (!user || !refreshToken) {
-				return Send.unauthorized(res, null, "Request Token not found");
+				return Send.unauthorized(res, "Request Token not found");
 			}
 			if (user.refresh_token !== refreshToken) {
-				return Send.unauthorized(res, null, "Invalid refresh token");
+				return Send.unauthorized(res, "Invalid refresh token");
 			}
 
 			const accessToken = AccessToken.sign(userId);
@@ -245,7 +274,7 @@ class HpController {
 				sameSite: "strict",
 			});
 
-			return Send.success(res, null, "Access Token refreshed successfully");
+			return Send.success(res, "Access Token refreshed successfully");
 		}
 	);
 
@@ -261,9 +290,10 @@ class HpController {
 				return next(new AppError(`Practitioner of ID: ${verifiedUserId} not found`, 404));
 			}
 
-			res.status(200).json({
-				message: "User verified successfully",
-			})
+			return Send.success(
+				res,
+				"User verified successfully",
+			)
 		}
 	);
 
@@ -281,7 +311,11 @@ class HpController {
 				);
 			}
 
-			return Send.success(res, { healthPractitioner });
+			return Send.success(
+				res,
+				`Health Practitioner of ID: ${userId}`,
+				HpMapper.hpResponse(healthPractitioner)
+			);
 		}
 	);
 
@@ -292,7 +326,7 @@ class HpController {
 				return next(new AppError("No Practitioner seen", 404));
 			}
 
-			return Send.success(res, { allPractitioners });
+			return Send.success(res, "All Health Practitioners", { allPractitioners });
 		}
 	);
 
@@ -312,7 +346,11 @@ class HpController {
 
 			await practitioner.destroy();
 
-			return Send.success(res, null, "Practitioner deleted successfully");
+			return Send.success(
+				res,
+				"Practitioner deleted successfully",
+				HpMapper.hpResponse(practitioner)
+			);
 		}
 	);
 
@@ -328,7 +366,34 @@ class HpController {
 		
 		await AuthController.forgotPassword(email, passwordForgetter.id)
 
-		return Send.success(res, null, "Link to reset password sent successfully")
+		return Send.success(res, "Link to reset password sent successfully")
+	});
+
+	static resetPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {
+			const { token } = req.query;
+			const { password } = req.body;
+	
+			if (!token || typeof(token) !== "string") {
+				return next(new AppError("Invalid or missing token", 401))
+			};
+	
+			if (!password || password.length < 6) {
+				return next(new AppError("Password must be atleast 6 characters long", 401))
+			};
+	
+			const decoded = AccessToken.verify(token);
+			const hashedPassword = await bcrypt.hash(password, 10);
+			
+			const resetUserPassword = await HealthPractitioner.update(
+				{ password: hashedPassword },
+				{ where: { id: decoded.userId } }
+			);
+	
+			return Send.success(
+				res,
+				"Password Reset successful",
+				{...resetUserPassword},
+			)
 	});
 }
 

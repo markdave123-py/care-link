@@ -1,36 +1,36 @@
 import type { Response } from "express";
 
 class Send {
-    static success(res: Response, data: unknown, message = "success") {
+    static success(res: Response, message: string, data?: unknown) {
         res.status(200).json({
-            ok: true,
+            status: "success",
             message,
             data
         })
         return;
     }
 
-    static error(res: Response, data: unknown, message = "error") {
+    static error(res: Response, status = "error", message = "", data: unknown) {
         res.status(500).json({
-            ok: false,
+            status,
             message,
             data
         })
         return;
     }
 
-    static notFound(res: Response, data: unknown, message = "Not Found") {
+    static notFound(res: Response, status = "Not Found", message = "", data: unknown) {
         res.status(404).json({
-            ok: false,
+            status,
             message,
             data
         })
         return;
     }
 
-    static unauthorized(res:Response, data: unknown, message = "unathorized") {
+    static unauthorized(res:Response, message = "", data?: unknown) {
         res.status(401).json({
-            ok: false,
+            status: "Unauthorized",
             message,
             data
         })
@@ -46,18 +46,18 @@ class Send {
         return;
     }
 
-    static forbidden(res: Response, data: unknown, message = "Forbidden") {
+    static forbidden(res: Response, status = "Forbidden", message = "", data: unknown) {
         res.status(403).json({
-            ok: false,
+            status,
             message,
             data
         })
         return;
     }
 
-    static badRequest(res: Response, data: unknown, message = "Bad Request") {
+    static badRequest(res: Response, status = "Bad Request", message = "", data: unknown) {
         res.status(400).json({
-            ok: false,
+            status,
             message,
             data
         })

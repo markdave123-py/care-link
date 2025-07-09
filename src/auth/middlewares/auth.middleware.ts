@@ -30,7 +30,7 @@ class AuthMiddleware {
 			}
 
 			if (!token) {
-				return Send.unauthorized(res, null);
+				return Send.unauthorized(res,"you are unauthorized", null);
 			}
 
 			const decodedToken = jwt.verify(
@@ -52,7 +52,7 @@ class AuthMiddleware {
 			}
 
 			if (!token) {
-				return Send.unauthorized(res, null);
+				return Send.unauthorized(res, "you are unauthorized",null);
 			}
 
 			const decodedToken = jwt.verify(
@@ -82,7 +82,7 @@ class AuthMiddleware {
 			}
 
 			if (!token) {
-				return Send.unauthorized(res, { message: "No refresh token provided" });
+				return Send.unauthorized(res, "unauthorized",{ message: "No refresh token provided" });
 			}
 
 			const decodedToken = jwt.verify(

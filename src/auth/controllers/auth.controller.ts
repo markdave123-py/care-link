@@ -24,10 +24,10 @@ class AuthController {
 			});
 
 			if (!user || !refreshToken) {
-				return Send.unauthorized(res, null, "Request Token not found");
+				return Send.unauthorized(res,"Request Token not found", null);
 			}
 			if (user.refresh_token !== refreshToken) {
-				return Send.unauthorized(res, null, "Invalid refresh token");
+				return Send.unauthorized(res,"Invalid refresh token", null, );
 			}
 
 			const accessToken = AccessToken.sign(userId);
@@ -39,7 +39,7 @@ class AuthController {
 				sameSite: "strict",
 			});
 
-			return Send.success(res, null, "Access Token refreshed successfully");
+			return Send.success(res, "Access Token refreshed successfully", null, );
 		}
 	);
 
@@ -56,7 +56,7 @@ class AuthController {
 			res.clearCookie("accessToken");
 			res.clearCookie("refreshToken");
 
-			return Send.success(res, null, "Logged out successfully");
+			return Send.success(res, "Logged out successfully", null, );
 		}
 	);
 
@@ -86,7 +86,7 @@ class AuthController {
 			{ where: { id: decoded.userId } }
 		);
 
-		return Send.success(res, {...resetPasswordUser}, "Password Reset successful")
+		return Send.success(res, "Password Reset successful", {...resetPasswordUser},)
 	});
 }
 

@@ -1,9 +1,10 @@
-import type { Admin } from "src/core";
+import type { Admin } from "../../core";
 
 type AdminResponse = {
     id: string,
     firstname: string,
     lastname: string,
+    refreshToken: string | null,
     email: string,
 }
 
@@ -13,6 +14,7 @@ export class AdminMapper {
             id: admin.id,
             firstname: admin.firstname,
             lastname: admin.lastname,
+            refreshToken: admin.refresh_token,
             email: admin.email
         }
     }

@@ -1,10 +1,12 @@
 import OpenAI from 'openai';
 import { QueryTypes, Op } from 'sequelize';
-import { HealthPractitioner, sequelize } from 'src/core';
+import { HealthPractitioner, sequelize, LocalEmbeddings } from 'src/core';
 
+const localEmb = new LocalEmbeddings();
 
 export interface HPTypeMatch {
     id: string;
+    name: string;
     distance: number;          // cosine distance (smaller = closer)
 }
 
@@ -27,28 +29,25 @@ export default class Rag {
    * @param text Free-form input to embed.
    */
   async getEmbedding(text: string): Promise<number[]> {
-    const { data } = await this.openai.embeddings.create({
-      model: this.model,
-      input: text.trim(),
-    });
-    return data[0].embedding;
+    return localEmb.embed(text.trim())
   }
 
   private async getSymptomMatch(symptom: string): Promise<HPTypeMatch[]>{
 
     const embedding = await this.getEmbedding(symptom)
+    const embLiteral = `[${embedding.join(',')}]`;          
 
     const matches = await sequelize.query<HPTypeMatch>(
-        `SELECT id, embedding <-> :emb AS distance
+        `SELECT id, name, embedding <-> :emb::vector AS distance
             FROM "HPTypes" 
             ORDER BY distance  
-            LIMIT 2`,
+            LIMIT 1`,
             {
-                replacements: {emb: embedding},
+                replacements: {emb: embLiteral},
                 type: QueryTypes.SELECT
             }
     );
-
+    console.log(matches)
     return matches
   }
 
@@ -62,8 +61,8 @@ export default class Rag {
 
     const practitioner = await HealthPractitioner.findAll({
       where: {hp_type_id: {[Op.in]: typeIds, },
-      is_verified: true,
-      email_verified: true,
+      // is_verified: true,
+      // email_verified: true,
     },
       attributes:[
         'id',

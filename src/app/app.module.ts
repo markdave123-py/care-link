@@ -3,6 +3,7 @@ import { createServer } from "http";
 import { app } from "./app.service";
 import sequelize from "../core/config/db";
 import { associateModels } from "../core/models/associationModels";
+import { env } from "src/auth";
 import "../core/models/admin.model";
 
 export const startApp = async () => {

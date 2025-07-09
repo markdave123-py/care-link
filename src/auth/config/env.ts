@@ -26,5 +26,10 @@ export const env = {
     JWT_REFRESH_TOKEN_EXPIRES_IN: requireEnv('JWT_REFRESH_TOKEN_EXPIRES_IN'),
     POSTGRES_URI: requireEnv('POSTGRES_URI'),
     OPENAI_APIKEY: requireEnv('OPENAI_APIKEY'),
-    OPENAI_MODEL: requireEnv('OPENAI_MODEL')
+    OPENAI_MODEL: requireEnv('OPENAI_MODEL'),
+    AWS_REGION: requireEnv('AWS_REGION'),
+    AWS_S3_BUCKET: requireEnv('AWS_S3_BUCKET'),
+    AWS_ACCESS_KEY_ID: requireEnv('AWS_ACCESS_KEY_ID'),
+    AWS_SECRET_ACCESS_KEY: requireEnv('AWS_SECRET_ACCESS_KEY')
+    
 } as const;

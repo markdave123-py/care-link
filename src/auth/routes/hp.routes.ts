@@ -4,12 +4,13 @@ import { RequestValidator } from "../../core";
 import { loginSchema, registerHpSchema } from "../validation";
 import AuthMiddleware from "../middlewares/auth.middleware";
 import AuthController from "../controllers/auth.controller";
+import { uploadFile } from "../../core/middlewares/upload";
 
 const hpRouter = Router();
 
 hpRouter.get('/google', HpController.initializeGoogleAuth);
 hpRouter.get('/google/callback', HpController.getPractitionerToken);
-hpRouter.post('/register', RequestValidator.validate(registerHpSchema), HpController.register);
+hpRouter.post('/register', uploadFile, RequestValidator.validate(registerHpSchema), HpController.register);
 hpRouter.get('/verify-user', AuthMiddleware.verifyUserEmail, HpController.verifiedHealthPractitioner);
 hpRouter.post('/login', RequestValidator.validate(loginSchema), HpController.login);
 hpRouter.post('/refresh-access-token', AuthMiddleware.authenticateUser, HpController.refreshAccessToken);

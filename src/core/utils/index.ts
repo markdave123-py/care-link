@@ -4,3 +4,4 @@ export * from "./AppError";
 export * from "./catchAsync";
 export * from "./jwtHelper";
 export * from "./mailer";
+export * from "./localEmbed";

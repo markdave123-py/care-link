@@ -7,7 +7,6 @@ class UserController {
 	static getUser = async (req: AuthenticateRequest, res: Response) => {
 		try {
 			const userId = req.userId;
-			console.log(userId);
 
 			const user = await Patient.findOne({
 				where: { id: userId }

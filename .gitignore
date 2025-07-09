@@ -1,7 +1,69 @@
-node_modules
+############################################################
+#  Node / TypeScript
+############################################################
+# dependencies & lockfiles
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
 
-.env
-.env.*.local
-/generated/prisma
-env.example
-config/*
+# compiled output
+dist/
+build/
+*.tsbuildinfo                 # tsc --incremental file
+
+# testing / coverage
+coverage/
+.nyc_output/
+jest/**/*.html
+jest/**/*.tmp
+jest/cache/
+
+############################################################
+#  Environment & secrets
+############################################################
+.env*                         # .env, .env.local, etc.
+*.local                       # safety catch-all for local config
+*.pem                         # certs / keys
+*.pfx
+*.key
+
+############################################################
+#  Docker
+############################################################
+# anything created at runtime
+pgdata/                       # named volume sometimes mounted as a host dir
+huggingface/                  # HF model cache (if you bind-mount to host)
+docker-compose.override.yml   # personal overrides, not committed
+
+############################################################
+#  Terraform
+############################################################
+.terraform/                   # provider plugins & working dir
+*.tfstate                     # state files (sensitive!)
+*.tfstate.*                   # historical state
+crash.log                     # crash traces
+terraform.tfvars              # var files with secrets
+*.tfplan                      
+
+############################################################
+#  Editor / OS miscellany
+############################################################
+# macOS
+.DS_Store
+# Windows
+Thumbs.db
+ehthumbs.db
+# VS Code
+.vscode/
+.history/
+# JetBrains (WebStorm, IDEA, Goland…)
+.idea/
+# Vim / Emacs / nano swap files
+*~
+.*.sw?
+# others
+.cache/
+tmp/
+
+/models

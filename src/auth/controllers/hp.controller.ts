@@ -4,15 +4,17 @@ import {
 	AppError,
 	HealthPractitioner,
 	RefreshToken,
+	CatchAsync
 } from "../../core";
 import Send from "../utils/response.utils";
 import { config } from "dotenv";
 import * as bcrypt from "bcrypt";
-import { CatchAsync } from "../../core";
 import AuthController from "./auth.controller";
 import type { AuthenticateRequest } from "../middlewares";
 import { buildUrl } from "../utils";
 import { googleHp } from "../config";
+import { requireFields } from "../../common/validation";
+import { processFiles } from "../../common/upload";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -159,6 +161,9 @@ class HpController {
 
 	static register = CatchAsync.wrap(
 		async (req: Request, res: Response, next: NextFunction) => {
+			
+			requireFields(req.body, next, 'firstname', 'lastname', 'hp_type_id', 'email', 'password')
+
 			const { firstname, lastname, hp_type_id, email, password } = req.body;
 
 			const existingHp = await HealthPractitioner.findOne({
@@ -169,6 +174,12 @@ class HpController {
 				return next(new AppError("Email already in use", 400));
 			}
 
+			const docUrls = await processFiles(req.files, {
+				profile_picture: 'profile_picture',
+				passport:        'passport',
+				idcard:          'idcard',
+			});
+			  
 			const hashedpassword = await bcrypt.hash(password, 10);
 
 			const newUser = await HealthPractitioner.create({
@@ -177,6 +188,9 @@ class HpController {
 				lastname,
 				hp_type_id,
 				password: hashedpassword,
+				passport: docUrls.passport,
+				profile_picture: docUrls.profile_picture,
+				idcard: docUrls.idcard,
 				email_verified: false,
 				createdAt: new Date(),
 				updatedAt: new Date(),
@@ -191,6 +205,9 @@ class HpController {
 					email: newUser.email,
 					hp_type_id: newUser.hp_type_id,
 					refreshToken: newUser.refresh_token,
+					passport: newUser.passport,
+					profile_picture: newUser.profile_picture,
+					idcard: newUser.idcard,
 					createdAt: newUser.createdAt,
 					updatedAt: newUser.updatedAt,
 				},

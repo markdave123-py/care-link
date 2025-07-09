@@ -7,4 +7,4 @@ export const SmartRouter = Router();
 const ragService = new Rag()
 const smartSys = new SmartSys(ragService)
 
-SmartRouter.patch("/hp-by-symptom", smartSys.getHpBySymptom);
+SmartRouter.post("/hp-by-symptom", smartSys.getHpBySymptom);

@@ -1,0 +1,15 @@
+output "app_access_key_id" {
+  description = "Access-key ID for the application user"
+  value       = aws_iam_access_key.app_key.id
+  sensitive   = true
+}
+
+output "app_secret_access_key" {
+  description = "Secret access key"
+  value       = aws_iam_access_key.app_key.secret
+  sensitive   = true
+}
+
+output "bucket_name" {
+  value = aws_s3_bucket.hcs_bucket.bucket
+}

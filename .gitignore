@@ -12,6 +12,13 @@ config/*
 terraform.tfstate.backup
 terraform.tfstate
 
-.terraform
+.terraform/
+/.terraform
+terraform-provider-aws_v5.100
+**/.terraform/*
+!.terraform/modules/
+
+*.tfstate
+*.tfstate.*
 
 *.logs

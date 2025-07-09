@@ -12,7 +12,7 @@ services:
 
   app:
     build: .
-    ports:             # ← this line publishes the port to your host
+    ports:       
       - "3000:3000"
     env_file: .env
     environment:

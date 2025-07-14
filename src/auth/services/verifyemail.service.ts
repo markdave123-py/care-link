@@ -7,8 +7,8 @@ export class VerifyMailerService {
 		this.mailer = new Mailer();
 	};
 
-	private buildVerificationLink(token: string): string {
-		return `http://localhost:3000/api/v1/auth/patient/verify-user?token=${token}`;
+	private buildVerificationLink(token: string, type: string): string {
+		return `http://localhost:3000/api/v1/auth/${type}/verify-user?token=${token}`;
 	};
 
 	private buildHtmlTemplate(link: string): string {
@@ -29,8 +29,8 @@ export class VerifyMailerService {
     `;
 	};
 
-    public async send(email:string, token: string): Promise<void> {
-        const link = this.buildVerificationLink(token);
+    public async send(email:string, token: string, type: string): Promise<void> {
+        const link = this.buildVerificationLink(token, type);
         const html = this.buildHtmlTemplate(link);
 
         await this.mailer.sendMail({

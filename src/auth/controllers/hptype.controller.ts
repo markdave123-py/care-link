@@ -31,7 +31,24 @@ class HpTypeController {
 				name: hptype.name,
 			},
 		);
+
 	});
+
+	static getAllTypes = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const allTypes = await HPType.findAll();
+
+			if (!allTypes) {
+				return next(new AppError("No Practitioner Type seen", 404));
+			}
+			
+			return Send.success(
+				res,
+				"All Health Practitioner Types",
+				[ ...allTypes ]
+			)
+		}
+	)
 }
 
 export default HpTypeController;

@@ -25,7 +25,7 @@ app.use("/api/v1", appRouter);
 app.use("/api/v1/auth/admin", AdminRouter);
 app.use("/api/v1/auth/patient", patientRouter);
 app.use("/api/v1/auth/hp", hpRouter);
-app.use("/api/v1", hptypeRouter);
+app.use("/api/v1/hptype", hptypeRouter);
 app.use("/api/v1/patient-sessions", patientSessRouter);
 app.use("/api/v1/hp-sessions", HpSessRouter);
 app.use("/api/v1/smart-sys", SmartRouter)

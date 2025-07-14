@@ -26,7 +26,7 @@ HPType.init(
                 if (val === null) {
                   this.setDataValue('embedding', null);
                 } else {
-                  this.setDataValue('embedding', `[${val.join(',')}]` as unknown as any);
+                  this.setDataValue('embedding', `[${val.join(',')}]` as unknown as number[] | null);
                 }
               },
               get() {

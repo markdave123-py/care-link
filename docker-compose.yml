@@ -12,6 +12,13 @@ services:
 
   app:
     build: .
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: rebuild
+          path: package.json
     ports:       
       - "3000:3000"
     env_file: .env
@@ -19,11 +26,26 @@ services:
       POSTGRES_URI: postgres://postgres:postgres@db:5432/healthcare
       TRANSFORMERS_CACHE: ${TRANSFORMERS_CACHE}
       USE_ONNXRUNTIME_NODE: "0"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     volumes:
       - huggingface:${TRANSFORMERS_CACHE}
-    depends_on: [db]
+    depends_on: [db, rabbitmq]
     restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/data
 
 volumes:
   pgdata:
   huggingface:
+  rabbitmq_data:

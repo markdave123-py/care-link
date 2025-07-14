@@ -9,14 +9,15 @@ import {
 import type { NextFunction, Request, Response } from "express";
 import * as bcrypt from "bcrypt";
 import Send from "../utils/response.utils";
-import { AdminInviteLink } from "../services/adminInvite.service";
 import { AdminMapper } from "../mappers/admin.mapper";
 import type { AuthenticateRequest } from "../middlewares";
 import AuthController from "./auth.controller";
 import { buildUrl } from "../utils";
 import { googlePatient } from "../config";
+import { PublishToQueue } from "src/common/rabbitmq/producer";
 
 export class AdminController {
+	private static type: string = "admin";
 	static initializeGoogleAuth = async (_: Request, res: Response) => {
 		const consent_screen = buildUrl(googlePatient);
 		res.redirect(consent_screen);
@@ -224,7 +225,9 @@ export class AdminController {
 			const { email } = req.body;
 
 			const token = InviteAdminToken.sign(email);
-			await AdminInviteLink.send(email, token);
+			const type = this.type;
+			const data = { email, token, type };
+			await PublishToQueue.email("auth.admin.inviteadmin", data);
 
 			res.json("Request sent successfully!");
 		}
@@ -376,7 +379,7 @@ export class AdminController {
 				return next(new AppError(`User with Email: ${email} not found`, 404));
 			}
 
-			await AuthController.forgotPassword(email, passwordForgetter.id);
+			await AuthController.forgotPassword(this.type, email, passwordForgetter.id);
 
 			return Send.success(
 				res,

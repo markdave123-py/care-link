@@ -10,8 +10,8 @@ export class ForgotPasswordService {
         this.mailer = new Mailer();
     };
 
-    private buildPasswordResetLink(token: string): string {
-        return `http://localhost:3000/api/v1/auth/patient/reset-password?token=${token}`;
+    private buildPasswordResetLink(token: string, type: string): string {
+        return `http://localhost:3000/api/v1/auth/${type}/reset-password?token=${token}`;
     };
 
     private buildHtmlTemplate(link: string): string {
@@ -32,8 +32,8 @@ export class ForgotPasswordService {
         `;
     };
 
-    public async send(token: string, email: string): Promise<void> {
-        const link = this.buildPasswordResetLink(token);
+    public async send(token: string, email: string, type: string): Promise<void> {
+        const link = this.buildPasswordResetLink(token, type);
         const html = this.buildHtmlTemplate(link);
 
         await this.mailer.sendMail({

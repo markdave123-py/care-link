@@ -3,8 +3,10 @@ import { createServer } from "http";
 import { app } from "./app.service";
 import sequelize from "../core/config/db";
 import { associateModels } from "../core/models/associationModels";
-import { env } from "src/auth";
 import "../core/models/admin.model";
+import { Rabbitmq } from "../common/rabbitmq";
+import { EmailVerification } from "../common/rabbitmq/consumers/emailverification.consumer";
+import { ForgotPasswordConsumer } from "../common/rabbitmq/consumers/forgotpassword.consumer";
 
 export const startApp = async () => {
   // await sequelize.authenticate();
@@ -14,6 +16,12 @@ export const startApp = async () => {
 
   await sequelize.sync({ alter: true });
   console.log("Models synced");
+
+  // Initialize Rabbitmq
+  await Rabbitmq.connect();
+
+  await EmailVerification.consume();
+  await ForgotPasswordConsumer.consume();
 
   const server = createServer(app);
   server.listen(3000, () => console.log("Server is running on port 3000"));

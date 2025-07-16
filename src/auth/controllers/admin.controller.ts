@@ -14,7 +14,7 @@ import type { AuthenticateRequest } from "../middlewares";
 import AuthController from "./auth.controller";
 import { buildUrl } from "../utils";
 import { googlePatient } from "../config";
-import { PublishToQueue } from "src/common/rabbitmq/producer";
+import { PublishToQueue } from "../../common/rabbitmq/producer";
 
 export class AdminController {
 	private static type: string = "admin";
@@ -223,11 +223,13 @@ export class AdminController {
 			}
 
 			const { email } = req.body;
+			if (!email) {
+				return new AppError("No email Found", 404);
+			}
 
 			const token = InviteAdminToken.sign(email);
-			const type = this.type;
-			const data = { email, token, type };
-			await PublishToQueue.email("auth.admin.inviteadmin", data);
+			const data = { token, email };
+			await PublishToQueue.email("auth.admin.invite", data);
 
 			res.json("Request sent successfully!");
 		}
@@ -339,7 +341,9 @@ export class AdminController {
 
 	static getAllAdmins = CatchAsync.wrap(
 		async (req: Request, res: Response, next: NextFunction) => {
-			const allAdmins = await Admin.findAll();
+			const allAdmins = await Admin.findAll({
+				attributes: { exclude: ["password"] }
+			});
 			if (!allAdmins) {
 				return next(new AppError("No Admin seen", 404));
 			}

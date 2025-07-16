@@ -211,7 +211,7 @@ class PatientController {
 
 			const type = "patient";
 			const token = EmailVerificationToken.sign(newPatient.id);
-			const data = { email, token, type };
+			const data = { token, email, type };
 			const key = "auth.patient.register"; // routing_key for rabbitmq
 			await PublishToQueue.email(key, data);
 

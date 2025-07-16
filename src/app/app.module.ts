@@ -7,6 +7,7 @@ import "../core/models/admin.model";
 import { Rabbitmq } from "../common/rabbitmq";
 import { EmailVerification } from "../common/rabbitmq/consumers/emailverification.consumer";
 import { ForgotPasswordConsumer } from "../common/rabbitmq/consumers/forgotpassword.consumer";
+import { InviteAdminConsumer } from "../common/rabbitmq/consumers/inviteAdmin.consumer";
 
 export const startApp = async () => {
   // await sequelize.authenticate();
@@ -22,6 +23,7 @@ export const startApp = async () => {
 
   await EmailVerification.consume();
   await ForgotPasswordConsumer.consume();
+  await InviteAdminConsumer.consume();
 
   const server = createServer(app);
   server.listen(3000, () => console.log("Server is running on port 3000"));

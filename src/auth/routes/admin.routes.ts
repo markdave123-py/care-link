@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { AdminController } from "../controllers";
 import AuthMiddleware from "../middlewares/auth.middleware";
+import { RequestValidator } from "../../core";
+import { loginSchema } from "../validation";
 
 const AdminRouter = Router();
 
 AdminRouter.post('/register', AdminController.register);
-AdminRouter.post('/login', AdminController.login);
+AdminRouter.post('/login', RequestValidator.validate(loginSchema), AdminController.login);
 AdminRouter.post('/refresh-access-token', AuthMiddleware.authenticateUser, AdminController.refreshAccessToken);
 AdminRouter.post('/request-admin', AuthMiddleware.authenticateAdmin, AdminController.requestAdmin);
 AdminRouter.post('/invite-admin', AdminController.inviteAdmin);

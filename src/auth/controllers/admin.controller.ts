@@ -231,7 +231,10 @@ export class AdminController {
 			const data = { token, email };
 			await PublishToQueue.email("auth.admin.invite", data);
 
-			res.json("Request sent successfully!");
+			return Send.success(
+				res,
+				"Request sent successfully!"
+			)
 		}
 	);
 

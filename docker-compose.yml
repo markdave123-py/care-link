@@ -2,27 +2,27 @@ services:
   db:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_USER: postgres
+      POSTGRES_USER:     postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: healthcare
+      POSTGRES_DB:       healthcare
+    ports: ["5432:5432"]
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db-init:/docker-entrypoint-initdb.d
-    ports: ["5432:5432"]
 
   app:
     build: .
-    ports:       
-      - "3000:3000"
     env_file: .env
     environment:
       POSTGRES_URI: postgres://postgres:postgres@db:5432/healthcare
-      TRANSFORMERS_CACHE: ${TRANSFORMERS_CACHE}
-      USE_ONNXRUNTIME_NODE: "0"
-    volumes:
-      - huggingface:${TRANSFORMERS_CACHE}
-    depends_on: [db]
+      NODE_ENV: production
+      TRANSFORMERS_CACHE: /root/.cache/huggingface
+    depends_on:
+      - db
+    ports: ["3000:3000"]
     restart: unless-stopped
+    volumes:
+      - huggingface:/root/.cache/huggingface  
 
 volumes:
   pgdata:

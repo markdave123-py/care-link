@@ -423,6 +423,23 @@ class HpController {
 			});
 		}
 	);
+
+	static logout = CatchAsync.wrap(
+			async (req: AuthenticateRequest, res: Response) => {
+				const hpId = req.userId;
+				if (hpId) {
+					await HealthPractitioner.update(
+						{ refresh_token: null },
+						{ where: { id: hpId } }
+					);
+				}
+	
+				res.clearCookie("accessToken");
+				res.clearCookie("refreshToken");
+	
+				return Send.success(res, "Logged out successfully", null, );
+			}
+		);
 }
 
 export default HpController;

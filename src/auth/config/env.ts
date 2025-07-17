@@ -30,6 +30,6 @@ export const env = {
     AWS_REGION: requireEnv('AWS_REGION'),
     AWS_S3_BUCKET: requireEnv('AWS_S3_BUCKET'),
     AWS_ACCESS_KEY_ID: requireEnv('AWS_ACCESS_KEY_ID'),
-    AWS_SECRET_ACCESS_KEY: requireEnv('AWS_SECRET_ACCESS_KEY')
-    
+    AWS_SECRET_ACCESS_KEY: requireEnv('AWS_SECRET_ACCESS_KEY'),
+    RABBITMQ_URL: requireEnv('RABBITMQ_URL'),
 } as const;

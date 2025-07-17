@@ -1,5 +1,6 @@
 import * as amqp from "amqplib";
 import type { ChannelModel, Channel } from "amqplib";
+import { env } from "../../auth";
 
 export class Rabbitmq {
     private static connection: ChannelModel;
@@ -7,13 +8,13 @@ export class Rabbitmq {
 
 	static connect = async () => {
 		try {
-			const connection = await amqp.connect("amqp://guest:guest@rabbitmq:5672");
+			const connection = await amqp.connect(env.RABBITMQ_URL);
 			const channel = await connection.createChannel();
 
             this.connection = connection;
             this.channel = channel;
 
-			console.log("Rabbitmq Connected✅");
+			console.log("Rabbitmq Connected");
 		} catch (err) {
 			console.error("Error using rabbitmq: ", err);
 			throw err;
@@ -27,10 +28,4 @@ export class Rabbitmq {
 			return this.channel;
 		}
 	};
-
-	static async disconnect() {
-		await this.channel?.close();
-		await this.connection?.close();
-		console.log("RabbitMQ connection closed");
-	}
 }

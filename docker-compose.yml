@@ -16,7 +16,7 @@ services:
       watch:
         - action: sync
           path: ./src
-          target: /app/src
+          target: /src
         - action: rebuild
           path: package.json
     ports:       

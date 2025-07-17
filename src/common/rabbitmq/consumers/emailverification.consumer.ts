@@ -1,4 +1,4 @@
-import { VerificationMailer } from "src/auth";
+import { VerificationMailer } from "../../../auth";
 import { Rabbitmq } from ".."
 
 export class EmailVerification {
@@ -20,7 +20,7 @@ export class EmailVerification {
                 const { email, token, type } = data;
 
                 try {
-                    await VerificationMailer.send(email, token, type);
+                    await VerificationMailer.send(token, email, type);
                     console.log(`Sent verification email to ${email}`);
                     channel.ack(msg);
                 } catch (err) {

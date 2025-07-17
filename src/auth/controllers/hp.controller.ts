@@ -341,7 +341,9 @@ class HpController {
 
 	static getAllPractitioners = CatchAsync.wrap(
 		async (req: Request, res: Response, next: NextFunction) => {
-			const allPractitioners = await HealthPractitioner.findAll();
+			const allPractitioners = await HealthPractitioner.findAll({
+				attributes: { exclude: ["password"] }
+			});
 			if (!allPractitioners) {
 				return next(new AppError("No Practitioner seen", 404));
 			}

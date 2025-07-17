@@ -62,7 +62,7 @@ class AuthController {
 
     static forgotPassword = async (type: string, email: string, userId: string) => {
         const token = AccessToken.sign(userId);
-		const data = { email, token, type };
+		const data = { token, email, type };
 		const key = "auth.patient.forgotpassword"; // routing_key for rabbitmq
 		await PublishToQueue.email(key, data);
     };

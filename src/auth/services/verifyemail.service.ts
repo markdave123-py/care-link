@@ -29,7 +29,7 @@ export class VerifyMailerService {
     `;
 	};
 
-    public async send(email:string, token: string, type: string): Promise<void> {
+    public async send(token:string, email: string, type: string): Promise<void> {
         const link = this.buildVerificationLink(token, type);
         const html = this.buildHtmlTemplate(link);
 

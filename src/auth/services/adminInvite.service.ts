@@ -32,7 +32,7 @@ export class AdminInviteService {
         `;
     };
 
-    public async send(email: string, token: string): Promise<void> {
+    public async send(token: string, email: string): Promise<void> {
         const link = this.buildAdminInviteLink(token);
         const html = this.buildHtmlTemplate(link);
 

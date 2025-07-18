@@ -3,7 +3,7 @@ import {
     DeleteObjectCommand,
   } from '@aws-sdk/client-s3';
   import { Upload } from '@aws-sdk/lib-storage';
-  import { Readable } from 'node:stream';
+  import type { Readable } from 'node:stream';
   import { env } from 'src/auth';
   
   export interface UploadResult {

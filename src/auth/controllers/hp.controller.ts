@@ -4,7 +4,8 @@ import {
 	AppError,
 	HealthPractitioner,
 	RefreshToken,
-	CatchAsync
+	CatchAsync,
+	EmailVerificationToken,
 } from "../../core";
 import Send from "../utils/response.utils";
 import { config } from "dotenv";
@@ -16,16 +17,21 @@ import { googleHp } from "../config";
 import { requireFields } from "../../common/validation";
 import { processFiles } from "../../common/upload";
 import { HpMapper } from "../mappers/hp.mapper";
+import { PublishToQueue } from "../../common/rabbitmq/producer";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 class HpController {
+	private static type: string = "hp";
 	static initializeGoogleAuth = async (_: Request, res: Response) => {
 		const consent_screen = buildUrl(googleHp);
 		res.redirect(consent_screen);
 	};
-	
-	static getPractitionerToken = async (req: Request, res: Response): Promise<void> => {
+
+	static getPractitionerToken = async (
+		req: Request,
+		res: Response
+	): Promise<void> => {
 		console.log(req.query);
 
 		const { code } = req.query;
@@ -34,7 +40,7 @@ class HpController {
 			!process.env.GOOGLE_CLIENT_ID ||
 			!process.env.GOOGLE_CLIENT_SECRET ||
 			!process.env.GOOGLE_HP_REDIRECT_URI ||
-            !process.env.GOOGLE_TOKEN_ENDPOINT ||
+			!process.env.GOOGLE_TOKEN_ENDPOINT ||
 			!code
 		) {
 			res.status(400).json({ error: "Missing required OAuth parameters" });
@@ -76,24 +82,26 @@ class HpController {
 				`${process.env.GOOGLE_TOKEN_INFO_URL}?id_token=${id_token}`
 			);
 
-            const { email, given_name, family_name, email_verified } = await token_info_response.json();
-            const [ newUser, created ] = await HealthPractitioner.findOrCreate({
+			const { email, given_name, family_name, email_verified } =
+				await token_info_response.json();
+			const [newUser, created] = await HealthPractitioner.findOrCreate({
 				where: { email },
-                defaults: { email,
-                firstname: given_name,
-                lastname: family_name,
-				hp_type_id: "c632348a-db2e-430f-a582-004c9fd773b0",
-				refresh_token: "",
-                password: null,
-                email_verified,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-				}
-            });
+				defaults: {
+					email,
+					firstname: given_name,
+					lastname: family_name,
+					hp_type_id: "c632348a-db2e-430f-a582-004c9fd773b0",
+					refresh_token: "",
+					password: null,
+					email_verified,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				},
+			});
 
 			const accessToken = AccessToken.sign(newUser.id);
 			const refreshToken = RefreshToken.sign(newUser.id);
-			
+
 			newUser.refresh_token = refreshToken;
 			await newUser.save();
 
@@ -114,14 +122,14 @@ class HpController {
 			return Send.success(
 				res,
 				created ? "User created successfully" : "User already exists",
-				HpMapper.hpResponse(newUser),
+				HpMapper.hpResponse(newUser)
 			);
 		} catch (err) {
 			console.error("OAuth callback error:", err);
 			res.status(500).json({ error: "Internal server error" });
 		}
 	};
-	
+
 	static login = CatchAsync.wrap(
 		async (req: Request, res: Response, next: NextFunction) => {
 			const { email, password } = req.body;
@@ -163,14 +171,25 @@ class HpController {
 				sameSite: "strict",
 			});
 
-			return Send.success(res, "User Logged in successfully", HpMapper.hpResponse(hp))
+			return Send.success(
+				res,
+				"User Logged in successfully",
+				HpMapper.hpResponse(hp)
+			);
 		}
 	);
 
 	static register = CatchAsync.wrap(
 		async (req: Request, res: Response, next: NextFunction) => {
-			
-			requireFields(req.body, next, 'firstname', 'lastname', 'hp_type_id', 'email', 'password')
+			requireFields(
+				req.body,
+				next,
+				"firstname",
+				"lastname",
+				"hp_type_id",
+				"email",
+				"password",
+			);
 
 			const { firstname, lastname, hp_type_id, email, password } = req.body;
 
@@ -183,13 +202,13 @@ class HpController {
 			}
 
 			const docUrls = await processFiles(req.files, {
-				profile_picture: 'profile_picture',
-				passport:        'passport',
-				idcard:          'idcard',
+				profile_picture: "profile_picture",
+				passport: "passport",
+				idcard: "idcard",
 			});
-			  
+
 			const hashedpassword = await bcrypt.hash(password, 10);
-			
+
 			const newUser = await HealthPractitioner.create({
 				email,
 				firstname,
@@ -224,24 +243,26 @@ class HpController {
 				sameSite: "strict",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 			});
-			
-			return Send.success(
-				res,
-				"User created successfully",
-				{
-					id: newUser.id,
-					firstname: newUser.firstname,
-					lastname: newUser.lastname,
-					email: newUser.email,
-					hp_type_id: newUser.hp_type_id,
-					refreshToken: newUser.refresh_token,
-					passport: newUser.passport,
-					profile_picture: newUser.profile_picture,
-					idcard: newUser.idcard,
-					createdAt: newUser.createdAt,
-					updatedAt: newUser.updatedAt,
-				},
-			);
+
+			const type = "hp";
+			const token = EmailVerificationToken.sign(newUser.id);
+			const data = { email, token, type };
+			const key = "auth.hp.register"; // routing_key for rabbitmq
+			await PublishToQueue.email(key, data);
+
+			return Send.success(res, "User created successfully", {
+				id: newUser.id,
+				firstname: newUser.firstname,
+				lastname: newUser.lastname,
+				email: newUser.email,
+				hp_type_id: newUser.hp_type_id,
+				refreshToken: newUser.refresh_token,
+				passport: newUser.passport,
+				profile_picture: newUser.profile_picture,
+				idcard: newUser.idcard,
+				createdAt: newUser.createdAt,
+				updatedAt: newUser.updatedAt,
+			});
 		}
 	);
 
@@ -287,13 +308,12 @@ class HpController {
 				{ where: { id: verifiedUserId } }
 			);
 			if (!user) {
-				return next(new AppError(`Practitioner of ID: ${verifiedUserId} not found`, 404));
+				return next(
+					new AppError(`Practitioner of ID: ${verifiedUserId} not found`, 404)
+				);
 			}
 
-			return Send.success(
-				res,
-				"User verified successfully",
-			)
+			return Send.success(res, "User verified successfully");
 		}
 	);
 
@@ -321,12 +341,16 @@ class HpController {
 
 	static getAllPractitioners = CatchAsync.wrap(
 		async (req: Request, res: Response, next: NextFunction) => {
-			const allPractitioners = await HealthPractitioner.findAll();
+			const allPractitioners = await HealthPractitioner.findAll({
+				attributes: { exclude: ["password"] }
+			});
 			if (!allPractitioners) {
 				return next(new AppError("No Practitioner seen", 404));
 			}
 
-			return Send.success(res, "All Health Practitioners", { allPractitioners });
+			return Send.success(res, "All Health Practitioners", {
+				allPractitioners,
+			});
 		}
 	);
 
@@ -354,47 +378,51 @@ class HpController {
 		}
 	);
 
-	static forgotPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {
-		const { email } = req.body;
+	static forgotPassword = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const { email } = req.body;
 
-		const passwordForgetter = await HealthPractitioner.findOne({
-			where: { email }
-		});
-		if (!passwordForgetter) {
-			return next(new AppError(`User with Email: ${email} not found`, 400))
+			const passwordForgetter = await HealthPractitioner.findOne({
+				where: { email },
+			});
+			if (!passwordForgetter) {
+				return next(new AppError(`User with Email: ${email} not found`, 400));
+			}
+
+			await AuthController.forgotPassword(this.type, email, passwordForgetter.id);
+
+			return Send.success(res, "Link to reset password sent successfully");
 		}
-		
-		await AuthController.forgotPassword(email, passwordForgetter.id)
+	);
 
-		return Send.success(res, "Link to reset password sent successfully")
-	});
-
-	static resetPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {
+	static resetPassword = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
 			const { token } = req.query;
 			const { password } = req.body;
-	
-			if (!token || typeof(token) !== "string") {
-				return next(new AppError("Invalid or missing token", 401))
-			};
-	
+
+			if (!token || typeof token !== "string") {
+				return next(new AppError("Invalid or missing token", 401));
+			}
+
 			if (!password || password.length < 6) {
-				return next(new AppError("Password must be atleast 6 characters long", 401))
-			};
-	
+				return next(
+					new AppError("Password must be atleast 6 characters long", 401)
+				);
+			}
+
 			const decoded = AccessToken.verify(token);
 			const hashedPassword = await bcrypt.hash(password, 10);
-			
+
 			const resetUserPassword = await HealthPractitioner.update(
 				{ password: hashedPassword },
 				{ where: { id: decoded.userId } }
 			);
-	
-			return Send.success(
-				res,
-				"Password Reset successful",
-				{...resetUserPassword},
-			)
-	});
+
+			return Send.success(res, "Password Reset successful", {
+				...resetUserPassword,
+			});
+		}
+	);
 }
 
 export default HpController;

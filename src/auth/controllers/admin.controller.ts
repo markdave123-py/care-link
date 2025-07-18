@@ -9,14 +9,15 @@ import {
 import type { NextFunction, Request, Response } from "express";
 import * as bcrypt from "bcrypt";
 import Send from "../utils/response.utils";
-import { AdminInviteLink } from "../services/adminInvite.service";
 import { AdminMapper } from "../mappers/admin.mapper";
 import type { AuthenticateRequest } from "../middlewares";
 import AuthController from "./auth.controller";
 import { buildUrl } from "../utils";
 import { googlePatient } from "../config";
+import { PublishToQueue } from "../../common/rabbitmq/producer";
 
 export class AdminController {
+	private static type: string = "admin";
 	static initializeGoogleAuth = async (_: Request, res: Response) => {
 		const consent_screen = buildUrl(googlePatient);
 		res.redirect(consent_screen);
@@ -222,11 +223,18 @@ export class AdminController {
 			}
 
 			const { email } = req.body;
+			if (!email) {
+				return new AppError("No email Found", 404);
+			}
 
 			const token = InviteAdminToken.sign(email);
-			await AdminInviteLink.send(email, token);
+			const data = { token, email };
+			await PublishToQueue.email("auth.admin.invite", data);
 
-			res.json("Request sent successfully!");
+			return Send.success(
+				res,
+				"Request sent successfully!"
+			)
 		}
 	);
 
@@ -336,7 +344,9 @@ export class AdminController {
 
 	static getAllAdmins = CatchAsync.wrap(
 		async (req: Request, res: Response, next: NextFunction) => {
-			const allAdmins = await Admin.findAll();
+			const allAdmins = await Admin.findAll({
+				attributes: { exclude: ["password"] }
+			});
 			if (!allAdmins) {
 				return next(new AppError("No Admin seen", 404));
 			}
@@ -376,7 +386,7 @@ export class AdminController {
 				return next(new AppError(`User with Email: ${email} not found`, 404));
 			}
 
-			await AuthController.forgotPassword(email, passwordForgetter.id);
+			await AuthController.forgotPassword(this.type, email, passwordForgetter.id);
 
 			return Send.success(
 				res,

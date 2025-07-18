@@ -4,16 +4,17 @@ import Send from "../utils/response.utils";
 import { AccessToken, AppError, EmailVerificationToken, Patient, RefreshToken } from "../../core";
 import { config } from "dotenv";
 import { CatchAsync } from "../../core";
-import { VerificationMailer } from "../services";
 import AuthController from "./auth.controller";
 import type { AuthenticateRequest } from "../middlewares";
 import { buildUrl } from "../utils";
 import { googlePatient } from "../config";
 import { PatientMapper } from "../mappers/patient.mapper";
+import { PublishToQueue } from "../../common/rabbitmq/producer";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 class PatientController {
+	private static type: string = "patient"; 
 	static initializeGoogleAuth = async (_: Request, res: Response) => {
 		const consent_screen = buildUrl(googlePatient);
 		res.redirect(consent_screen);
@@ -208,8 +209,11 @@ class PatientController {
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 			});
 
+			const type = "patient";
 			const token = EmailVerificationToken.sign(newPatient.id);
-			await VerificationMailer.send(email, token);
+			const data = { token, email, type };
+			const key = "auth.patient.register"; // routing_key for rabbitmq
+			await PublishToQueue.email(key, data);
 
 			return Send.success(
 				res,
@@ -301,7 +305,9 @@ class PatientController {
 
 	static getAllPatients = CatchAsync.wrap(
 		async (req: Request, res: Response, next: NextFunction) => {
-			const allPatients = await Patient.findAll();
+			const allPatients = await Patient.findAll({
+				attributes: { exclude: ['password'] }
+			});
 			if (!allPatients) {
 				return next(new AppError("No Patient seen", 404));
 			}
@@ -309,7 +315,7 @@ class PatientController {
 			return Send.success(
 				res,
 				"All Patients",
-				{ allPatients },
+				[...allPatients],
 			);
 		}
 	);
@@ -348,7 +354,7 @@ class PatientController {
 			return next(new AppError(`User with Email: ${email} not found`, 404))
 		}
 		
-		await AuthController.forgotPassword(email, passwordForgetter.id)
+		await AuthController.forgotPassword(this.type, email, passwordForgetter.id);
 
 		return Send.success(res, "Link to reset password sent successfully")
 	});

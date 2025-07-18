@@ -3,9 +3,9 @@ import type { AuthenticateRequest } from "../middlewares";
 import { AccessToken, AppError, Patient } from "../../core";
 import Send from "../utils/response.utils";
 import { config } from "dotenv";
-import { CatchAsync } from "../../core";
-import { ForgotPasswordLink } from "../services";
 import * as bcrypt from "bcrypt";
+import { PublishToQueue } from "../../common/rabbitmq/producer";
+import { CatchAsync } from '../../core/utils'
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
@@ -60,10 +60,11 @@ class AuthController {
 		}
 	);
 
-    static forgotPassword = async (email: string, userId: string) => {
+    static forgotPassword = async (type: string, email: string, userId: string) => {
         const token = AccessToken.sign(userId);
-
-        await ForgotPasswordLink.send(token, email);
+		const data = { token, email, type };
+		const key = "auth.patient.forgotpassword"; // routing_key for rabbitmq
+		await PublishToQueue.email(key, data);
     };
 
 	static resetPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {

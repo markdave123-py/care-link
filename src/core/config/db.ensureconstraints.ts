@@ -1,14 +1,6 @@
-import { env } from "src/auth";
 import sequelize from '../config/db';
+import { getSlotLen } from '../utils';
 
-function getSlotLen(): Number{
-    let slotlen = parseInt(env.SLOT_LENGTH_MINUTES, 10)
-
-    if (Number.isNaN(slotlen) || slotlen <= 0){
-        return 30
-    }
-    return slotlen
-}
 
 let SLOT_LEN = getSlotLen()
 

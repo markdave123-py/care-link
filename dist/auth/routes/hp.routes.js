@@ -1,0 +1,23 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const hp_controller_1 = require("../controllers/hp.controller");
+const core_1 = require("../../core");
+const validation_1 = require("../validation");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const upload_1 = require("../../core/middlewares/upload");
+const hpRouter = (0, express_1.Router)();
+hpRouter.get('/google', hp_controller_1.default.initializeGoogleAuth);
+hpRouter.get('/google/callback', hp_controller_1.default.getPractitionerToken);
+hpRouter.post('/register', upload_1.uploadFile, core_1.RequestValidator.validate(validation_1.registerHpSchema), hp_controller_1.default.register);
+hpRouter.get('/verify-user', auth_middleware_1.default.verifyUserEmail, hp_controller_1.default.verifiedHealthPractitioner);
+hpRouter.post('/login', core_1.RequestValidator.validate(validation_1.loginSchema), hp_controller_1.default.login);
+hpRouter.post('/refresh-access-token', auth_middleware_1.default.authenticateUser, hp_controller_1.default.refreshAccessToken);
+hpRouter.get('/:id', hp_controller_1.default.getPractitionerById);
+hpRouter.delete('/:id', hp_controller_1.default.deletePractitioner);
+hpRouter.get('/', hp_controller_1.default.getAllPractitioners);
+hpRouter.post('/logout', auth_middleware_1.default.authenticateUser, hp_controller_1.default.logout);
+hpRouter.post('/forgot-password', hp_controller_1.default.forgotPassword);
+hpRouter.post('/reset-password', hp_controller_1.default.resetPassword);
+exports.default = hpRouter;
+//# sourceMappingURL=hp.routes.js.map

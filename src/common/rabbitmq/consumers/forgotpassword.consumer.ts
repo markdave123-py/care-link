@@ -18,7 +18,7 @@ export class ForgotPasswordConsumer {
         channel.consume(queue, async (msg) => {
             if (msg) {
                 const data = JSON.parse(msg.content.toString());
-                const { email, token, type } = data;
+                const { token, email, type } = data;
 
                 try {
                     await ForgotPasswordLink.send(token, email, type);

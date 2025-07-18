@@ -1,8 +1,8 @@
 import sequelize from '../config/db';
-import { getSlotLen } from '../utils';
+import { getSlotLen } from '../../auth';
 
 
-let SLOT_LEN = getSlotLen()
+const SLOT_LEN = getSlotLen();
 
 export async function ensureConstraints() {
   await sequelize.query(`CREATE EXTENSION IF NOT EXISTS btree_gist;`);

@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
-import { AppError, CatchAsync, HPType } from "../../core";
+import { AppError, HPType, CatchAsync} from "../../core";
+// import { CatchAsync } from "../../core/utils";
 import Send from "../utils/response.utils";
 import Rag  from "../../smart-sys/services/rag.service";
 

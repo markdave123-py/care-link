@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { QueryTypes, Op } from 'sequelize';
-import { HealthPractitioner, sequelize, LocalEmbeddings } from '../../core';
+import { HealthPractitioner, sequelize } from '../../core';
+import { LocalEmbeddings } from '../../core/utils';
 
 const localEmb = new LocalEmbeddings();
 

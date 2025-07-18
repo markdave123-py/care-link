@@ -1,7 +1,7 @@
-import { WorkingHourDTO } from '../types/working-hour.dto';
-import { getSlotLen }     from 'src/core';
-import  dayjs              from 'dayjs';
-import { AppError }       from 'src/core';
+import type { WorkingHourDTO } from '../types/working-hour.dto';
+import * as dayjs   from 'dayjs';
+import { AppError }   from '../../core';
+import { getSlotLen } from '../../auth';
 
 export function normaliseSchedule(raw: any[]): WorkingHourDTO[] {
   if (!Array.isArray(raw) || raw.length === 0) {
@@ -27,8 +27,12 @@ export function normaliseSchedule(raw: any[]): WorkingHourDTO[] {
     const sMin = s.hour() * 60 + s.minute();
     const eMin = e.hour() * 60 + e.minute(); // exclusive bound
 
-    (buckets.get(dow) ?? []).push([sMin, eMin]);
-    buckets.set(dow, buckets.get(dow)!);
+    let arr = buckets.get(dow)
+    if(!arr){
+      arr = [];
+      buckets.set(dow, arr)
+    }
+    arr.push([sMin, eMin])
   }
 
   // merge per day 

@@ -1,8 +1,8 @@
-import { AppError, CatchAsync, HealthPractitioner, HttpStatus, responseHandler, sequelize, WorkingHour } from "src/core";
+import { AppError, CatchAsync, HealthPractitioner, HttpStatus, responseHandler, sequelize, WorkingHour } from "../../core";
 import type { Response, NextFunction } from "express";
 import { AuthenticateRequest } from "src/auth/middlewares";
 import { normaliseSchedule } from "../validators/schedule.validator";
-import { WorkingHourDTO } from "../types";
+import type { WorkingHourDTO } from "../types";
 
 
 export class HpSchedule{

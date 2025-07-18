@@ -31,5 +31,15 @@ export const env = {
     AWS_S3_BUCKET: requireEnv('AWS_S3_BUCKET'),
     AWS_ACCESS_KEY_ID: requireEnv('AWS_ACCESS_KEY_ID'),
     AWS_SECRET_ACCESS_KEY: requireEnv('AWS_SECRET_ACCESS_KEY'),
+    RABBITMQ_URL: requireEnv('RABBITMQ_URL'),
     SLOT_LENGTH_MINUTES: requireEnv('SLOT_LENGTH_MINUTES')
 } as const;
+
+export function getSlotLen(): number{
+    let slotlen = parseInt(env.SLOT_LENGTH_MINUTES, 10)
+
+    if (Number.isNaN(slotlen) || slotlen <= 0){
+        return 30
+    }
+    return slotlen
+}

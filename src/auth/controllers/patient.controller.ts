@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import * as bcrypt from "bcrypt";
 import Send from "../utils/response.utils";
-import { AccessToken, AppError, EmailVerificationToken, Patient, RefreshToken } from "../../core";
+import { AccessToken, AppError, EmailVerificationToken, Patient, RefreshToken, CatchAsync } from "../../core";
 import { config } from "dotenv";
-import { CatchAsync } from "../../core";
+// import { CatchAsync } from "../../core/utils";
 import AuthController from "./auth.controller";
 import type { AuthenticateRequest } from "../middlewares";
 import { buildUrl } from "../utils";

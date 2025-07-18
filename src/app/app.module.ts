@@ -22,11 +22,11 @@ export const startApp = async () => {
   await ensureConstraints();
 
   // Initialize Rabbitmq
-  // await Rabbitmq.connect();
+  await Rabbitmq.connect();
 
-  // await EmailVerification.consume();
-  // await ForgotPasswordConsumer.consume();
-  // await InviteAdminConsumer.consume();
+  await EmailVerification.consume();
+  await ForgotPasswordConsumer.consume();
+  await InviteAdminConsumer.consume();
 
   const server = createServer(app);
   server.listen(3000, () => console.log("Server is running on port 3000"));

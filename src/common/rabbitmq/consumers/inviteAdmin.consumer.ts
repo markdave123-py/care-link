@@ -3,7 +3,7 @@ import { AdminInviteLink } from "../../../auth/services/adminInvite.service";
 
 export class InviteAdminConsumer {
     static consume = async () => {
-        const channel = Rabbitmq.getChannel();
+        const channel = await Rabbitmq.getChannel();
         const exchange = "email_service";
         const queue = "invite-admin";
 

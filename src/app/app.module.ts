@@ -19,11 +19,16 @@ export const startApp = async () => {
   console.log("Models synced");
 
   // Initialize Rabbitmq
-  await Rabbitmq.connect();
-
-  await EmailVerification.consume();
-  await ForgotPasswordConsumer.consume();
-  await InviteAdminConsumer.consume();
+  try {
+    await Rabbitmq.connect();
+  
+    await EmailVerification.consume();
+    await ForgotPasswordConsumer.consume();
+    await InviteAdminConsumer.consume();
+  } catch (err) {
+    console.error("RabbitMQ is not available, continuing without it. Will retry...", err);
+    Rabbitmq.retryRabbitMQ();
+  }
 
   const server = createServer(app);
   server.listen(3000, () => console.log("Server is running on port 3000"));

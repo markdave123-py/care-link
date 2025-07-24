@@ -9,9 +9,10 @@ export class RequestSession extends Model<
 	declare id: CreationOptional<string>;
 	declare patient_id: CreationOptional<string>;
 	declare health_practitioner_id: CreationOptional<string>;
-	declare status: string;
+	declare status: CreationOptional<string>;
 	declare patient_symptoms: string;
 	declare ongoing_medication: string;
+	declare time: Date;
 }
 
 RequestSession.init(
@@ -23,8 +24,12 @@ RequestSession.init(
 		},
 		patient_id: DataTypes.UUID,
 		health_practitioner_id: DataTypes.UUID,
-		status: DataTypes.ENUM("pending", "accepted", "rejected", "cancelled"),
+		status: {
+			type: DataTypes.ENUM("pending", "accepted", "rejected", "cancelled"),
+			defaultValue: "pending",
+		},
 		patient_symptoms: DataTypes.TEXT,
+		time : DataTypes.DATE,
 		ongoing_medication: DataTypes.TEXT,
 	},
 	{

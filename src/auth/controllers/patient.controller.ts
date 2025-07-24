@@ -1,45 +1,144 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import * as bcrypt from "bcrypt";
-import * as jwt from "jsonwebtoken";
-import { buildUrl } from "../utils/google";
-import { google } from "../config/oauth";
 import Send from "../utils/response.utils";
-import type { AuthenticateRequest } from "../middlewares/auth.middleware";
-import { Patient } from "../../core";
+import { AccessToken, AppError, EmailVerificationToken, Patient, RefreshToken } from "../../core";
 import { config } from "dotenv";
+import { CatchAsync } from "../../core";
+import AuthController from "./auth.controller";
+import type { AuthenticateRequest } from "../middlewares";
+import { buildUrl } from "../utils";
+import { googlePatient } from "../config";
+import { PatientMapper } from "../mappers/patient.mapper";
+import { PublishToQueue } from "../../common/rabbitmq/producer";
 
-config({ path: `.env.${process.env.NODE_ENV || 'development'}.local`})
+config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 class PatientController {
-	static login = async (req: Request, res: Response) => {
-		const { email, password } = req.body;
+	private static type: string = "patient"; 
+	static initializeGoogleAuth = async (_: Request, res: Response) => {
+		const consent_screen = buildUrl(googlePatient);
+		res.redirect(consent_screen);
+	};
+	
+	static getPatientToken = async (req: Request, res: Response): Promise<void> => {
+		console.log(req.query);
 
-		if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_TOKEN_SECRET) {
-			throw new Error("Missing environment variable")
+		const { code } = req.query;
+
+		if (
+			!process.env.GOOGLE_CLIENT_ID ||
+			!process.env.GOOGLE_CLIENT_SECRET ||
+			!process.env.GOOGLE_PATIENT_REDIRECT_URI ||
+            !process.env.GOOGLE_TOKEN_ENDPOINT ||
+			!code
+		) {
+			res.status(400).json({ error: "Missing required OAuth parameters" });
+			return;
 		}
 
 		try {
+			const response = await fetch(process.env.GOOGLE_TOKEN_ENDPOINT, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+				body: new URLSearchParams({
+					client_id: process.env.GOOGLE_CLIENT_ID,
+					client_secret: process.env.GOOGLE_CLIENT_SECRET,
+					code: code as string,
+					grant_type: "authorization_code",
+					redirect_uri: process.env.GOOGLE_PATIENT_REDIRECT_URI,
+				}),
+			});
+
+			if (!response.ok) {
+				// Get error details from the response
+				const errorText = await response.text();
+				console.error("Token exchange failed:", errorText);
+				res.status(400).json({
+					error: "Token exchange failed",
+					details: errorText,
+				});
+				return;
+			}
+
+			const access_token_data = await response.json();
+			console.log(access_token_data);
+
+			const { id_token } = access_token_data;
+
+			const token_info_response = await fetch(
+				`${process.env.GOOGLE_TOKEN_INFO_URL}?id_token=${id_token}`
+			);
+
+            const { email, given_name, family_name, email_verified } = await token_info_response.json();
+            const [ newUser, created ] = await Patient.findOrCreate({
+				where: { email },
+                defaults: { email,
+                firstname: given_name,
+                lastname: family_name,
+                password: "null",
+				refresh_token: "",
+                email_verified,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+				}
+            });
+
+			const accessToken = AccessToken.sign(newUser.id);
+			const refreshToken = RefreshToken.sign(newUser.id);
+			
+			newUser.refresh_token = refreshToken;
+			await newUser.save();
+
+			res.cookie("accessToken", accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 15 * 60 * 1000, // 15 minutes
+			});
+
+			res.cookie("refreshToken", refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+			});
+
+			return Send.success(
+				res,
+				created ? "User created successfully" : "User already exists",
+				PatientMapper.patientResponse(newUser),
+			);
+		} catch (err) {
+			console.error("OAuth callback error:", err);
+			res.status(500).json({ error: "Internal server error" });
+		}
+	};
+	
+	static login = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const { email, password } = req.body;
+
+			if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_TOKEN_SECRET) {
+				return next(new AppError("Missing environment variable", 500));
+			}
+
 			const patient = await Patient.findOne({
 				where: { email },
 			});
-			if (!patient) {
-				return Send.error(res, null, "Invalid credentials");
+			if (!patient?.password) {
+				return next(new AppError("Invalid credential", 404));
 			}
 
 			const isPasswordValid = await bcrypt.compare(password, patient.password);
 			if (!isPasswordValid) {
-				return Send.error(res, null, "Incorrect password");
+				return next(new AppError("Incorrect password", 401));
 			}
 
-			const accessToken = jwt.sign({ userId: patient.id }, process.env.JWT_SECRET, {
-				expiresIn: "15m",
-			});
+			const accessToken = AccessToken.sign(patient.id);
 
-			const refreshToken = jwt.sign(
-				{ userId: patient.id },
-				process.env.JWT_REFRESH_TOKEN_SECRET,
-				{ expiresIn: "1d" }
-			);
+			const refreshToken = RefreshToken.sign(patient.id);
 
 			await patient.update({
 				refresh_token: refreshToken,
@@ -58,188 +157,234 @@ class PatientController {
 				sameSite: "strict",
 			});
 
-			return Send.success(res, {
-				id: patient.id,
-				firstname: patient.firstname,
-				email: patient.email,
-				createdAt: patient.createdAt,
-				UpdatedAt: patient.updatedAt,
-			});
-		} catch (err) {
-			console.error("Error logging in: ", err);
-			return Send.error(res, null, "Error logging in");
+			return Send.success(
+				res,
+				"Logged in successfully",
+				PatientMapper.patientResponse(patient),
+			);
 		}
-	};
+	);
 
-	static register = async (req: Request, res: Response) => {
-		const { firstname, lastname, email, password } = req.body;
+	static register = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const { firstname, lastname, email, password } = req.body;
 
-		try {
 			const existingPatient = await Patient.findOne({
 				where: { email },
 			});
 
 			if (existingPatient) {
-				return Send.error(res, null, "Email already in use");
+				return next(new AppError("Email already in use", 400));
 			}
 
 			const hashedpassword = await bcrypt.hash(password, 10);
 
-			const newUser = await Patient.create({
-                email,
-                firstname,
-                lastname,
-                password: hashedpassword,
-                email_verified: false,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            });
+			const newPatient = await Patient.create({
+				email,
+				firstname,
+				lastname,
+				password: hashedpassword,
+				email_verified: false,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			});
+
+			const accessToken = AccessToken.sign(newPatient.id);
+			const refreshToken = RefreshToken.sign(newPatient.id);
+			
+			newPatient.refresh_token = refreshToken;
+			await newPatient.save();
+
+			res.cookie("accessToken", accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 15 * 60 * 1000, // 15 minutes
+			});
+
+			res.cookie("refreshToken", refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+			});
+
+			const type = "patient";
+			const token = EmailVerificationToken.sign(newPatient.id);
+			const data = { token, email, type };
+			const key = "auth.patient.register"; // routing_key for rabbitmq
+			await PublishToQueue.email(key, data);
 
 			return Send.success(
 				res,
-				{
-					id: newUser.id,
-					firstname: newUser.firstname,
-                    lastname: newUser.lastname,
-					email: newUser.email,
-					refreshToken: newUser.refresh_token,
-                    createdAt: newUser.createdAt,
-                    updatedAt: newUser.updatedAt,
-				},
-				"User created successfully"
+				"User created successfully",
+				PatientMapper.patientResponse(newPatient),
 			);
-		} catch (err) {
-			console.error("Error registering user: ", err);
-			return Send.error(res, null, "Registration failed");
 		}
-	};
+	);
 
-	static logout = async (req: AuthenticateRequest, res: Response) => {
-		try {
-			const patientId = req.userId;
-			if (patientId) {
-				await Patient.update(
-					{ refresh_token: null },
-					{ where: { id: patientId } }
-                );
+	static refreshAccessToken = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response) => {
+			if (!process.env.JWT_REFRESH_TOKEN_SECRET) {
+				throw new Error("Missing Environment variable");
 			}
 
-			res.clearCookie("accessToken");
-			res.clearCookie("refreshToken");
-
-			return Send.success(res, null, "Logged out successfully");
-		} catch (err) {
-			console.error("Error loging out: ", err);
-			return Send.error(res, null, "Error logging out");
-		}
-	};
-
-	static refreshToken = async (req: AuthenticateRequest, res: Response) => {
-		if (!process.env.JWT_EXPIRES_IN) {
-			throw new Error("Missing environment variable")
-		}
-		try {
 			const userId = req.userId;
-			const refreshToken = req.cookies.accessToken;
+			const refreshToken = req.cookies.refreshToken;
 
 			const user = await Patient.findOne({
 				where: { id: userId },
 			});
 
 			if (!user || !refreshToken) {
-				return Send.unauthorized(res, "Refresh Token not found");
+				return Send.unauthorized(res, "Request Token not found");
 			}
-
 			if (user.refresh_token !== refreshToken) {
-				return Send.unauthorized(res, { message: "Invalid Refresh Token" });
+				return Send.unauthorized(res, "Invalid refresh token");
 			}
 
-			const newAccessToken = jwt.sign({ userId: user.id }, process.env.JWT_EXPIRES_IN, {
-				expiresIn: 15 * 60 * 1000,
-			});
+			const accessToken = AccessToken.sign(userId);
 
-			res.cookie("accessToken", newAccessToken, {
+			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
 				sameSite: "strict",
 			});
 
-			return Send.success(res, {
-				message: "Access Token refreshed successfully",
-			});
-		} catch (err) {
-			console.error("Error refreshing token: ", err);
-			return Send.error(res, null, "Error generating accessToken");
+			return Send.success(
+				res, 
+				"Access Token refreshed successfully",
+				PatientMapper.patientResponse(user),
+			);
 		}
-	};
-}
+	);
 
-export const initializeGoogleAuth = async (_: Request, res: Response) => {
-	const consent_screen = buildUrl(google);
-	res.redirect(consent_screen);
-};
+	static verifiedPatient = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+			const verifiedUserId = req.userId;
 
-export const getToken = async (req: Request, res: Response): Promise<void> => {
-	console.log(req.query);
+			const user = await Patient.update(
+				{ email_verified: true },
+				{
+					where: { id: verifiedUserId },
+				},
+			);
+			if (!user) {
+				return next(new AppError(`User of ID: ${verifiedUserId} not found`, 404));
+			}
 
-	const { code } = req.query;
+			return Send.success(
+				res,
+				"User verified successfully",
+			)
+		}
+	);
 
-	const GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
+	static getPatientById = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const userId = req.params.id;
 
-	if (
-		!process.env.GOOGLE_CLIENT_ID ||
-		!process.env.GOOGLE_CLIENT_SECRET ||
-		!process.env.GOOGLE_REDIRECT_URI ||
-		!code
-	) {
-		res.status(400).json({ error: "Missing required OAuth parameters" });
-		return;
-	}
+			const patient = await Patient.findOne({
+				where: { id: userId },
+				attributes: { exclude: ["password"] },
+			});
+			if (!patient) {
+				return next(
+					new AppError(`Patient with Id: ${userId} not found`, 404)
+				);
+			}
 
-	try {
-		const response = await fetch(GOOGLE_TOKEN_ENDPOINT, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
-			},
-			body: new URLSearchParams({
-				client_id: process.env.GOOGLE_CLIENT_ID,
-				client_secret: process.env.GOOGLE_CLIENT_SECRET,
-				code: code as string,
-				grant_type: "authorization_code",
-				redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-			}),
+			return Send.success(
+				res,
+				`Patient with ID: ${userId}`,
+				PatientMapper.patientResponse(patient),
+			);
+		}
+	);
+
+	static getAllPatients = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const allPatients = await Patient.findAll({
+				attributes: { exclude: ['password'] }
+			});
+			if (!allPatients) {
+				return next(new AppError("No Patient seen", 404));
+			}
+
+			return Send.success(
+				res,
+				"All Patients",
+				[...allPatients],
+			);
+		}
+	);
+
+	static deletePatient = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const patientId = req.params.id;
+
+			const patient = await Patient.findOne({
+				where: { id: patientId },
+			});
+
+			if (!patient) {
+				return next(
+					new AppError(`Patient with ID ${patientId} not found`, 404)
+				);
+			}
+
+			await patient.destroy();
+
+			return Send.success(
+				res,
+				"Patient deleted successfully",
+				PatientMapper.patientResponse(patient),
+			);
+		}
+	);
+
+	static forgotPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {
+		const { email } = req.body;
+
+		const passwordForgetter = await Patient.findOne({
+			where: { email }
 		});
-
-		if (!response.ok) {
-			// Get error details from the response
-			const errorText = await response.text();
-			console.error("Token exchange failed:", errorText);
-			res.status(400).json({
-				error: "Token exchange failed",
-				details: errorText,
-			});
-			return;
+		if (!passwordForgetter) {
+			return next(new AppError(`User with Email: ${email} not found`, 404))
 		}
+		
+		await AuthController.forgotPassword(this.type, email, passwordForgetter.id);
 
-		const access_token_data = await response.json();
-		console.log(access_token_data);
+		return Send.success(res, "Link to reset password sent successfully")
+	});
 
-		const { id_token } = access_token_data;
+	static resetPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {
+		const { token } = req.query;
+		const { password } = req.body;
 
-		const token_info_response = await fetch(
-			`${process.env.GOOGLE_TOKEN_INFO_URL}?id_token=${id_token}`
+		if (!token || typeof(token) !== "string") {
+			return next(new AppError("Invalid or missing token", 401))
+		};
+
+		if (!password || password.length < 6) {
+			return next(new AppError("Password must be atleast 6 characters long", 401))
+		};
+
+		const decoded = AccessToken.verify(token);
+		const hashedPassword = await bcrypt.hash(password, 10);
+		
+		const resetUserPassword = await Patient.update(
+			{ password: hashedPassword },
+			{ where: { id: decoded.userId } }
 		);
 
-		res.json({
-			success: true,
-			data: await token_info_response.json(),
-		});
-	} catch (err) {
-		console.error("OAuth callback error:", err);
-		res.status(500).json({ error: "Internal server error" });
-	}
-};
+		return Send.success(
+			res,
+			"Password Reset successful",
+			{...resetUserPassword},
+		)
+	});
+}
 
 export default PatientController;

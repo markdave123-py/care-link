@@ -1,24 +1,54 @@
-import type { Request, Response } from "express";
-import { HPType } from "../../core";
+import type { NextFunction, Request, Response } from "express";
+import { AppError, CatchAsync, HPType } from "../../core";
 import Send from "../utils/response.utils";
+import Rag  from "../../smart-sys/services/rag.service";
 
+const ragService = new Rag()
 class HpTypeController {
-    static createType = async (req: Request, res: Response) => {
-        try {
-            const { profession } = req.body;
+	static createType = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {
+		const { profession } = req.body;
 
-            const hptype = await HPType.create({
-                name: profession,
-            })
+		const exists = await HPType.findOne({
+			where: {name: profession}
+		})
 
-            return Send.success(res, {
-                id: hptype.id,
-                name: hptype.name
-            }, "Created a new hptype successfully")
-        } catch(err) {
-            console.log("Error creating hp type: ", err);
-        }
-    }
+		if (exists) {
+			return next(new AppError("Health practitioner Type already exists", 400))
+		}
+
+		const embedding = await ragService.getEmbedding(profession)
+
+		const hptype = await HPType.create({
+			name: profession,
+			embedding
+		});
+
+		return Send.success(
+			res,
+			"Created a new hptype successfully",
+			{
+				id: hptype.id,
+				name: hptype.name,
+			},
+		);
+
+	});
+
+	static getAllTypes = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const allTypes = await HPType.findAll();
+
+			if (!allTypes) {
+				return next(new AppError("No Practitioner Type seen", 404));
+			}
+			
+			return Send.success(
+				res,
+				"All Health Practitioner Types",
+				[ ...allTypes ]
+			)
+		}
+	)
 }
 
 export default HpTypeController;

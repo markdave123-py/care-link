@@ -11,3 +11,7 @@ patientSessRouter.post("/request", PatientSession.requestSession);
 patientSessRouter.get("/", PatientSession.getPatientSessions);
 
 patientSessRouter.patch("/:requestSession_id/cancel", PatientSession.cancelRequest);
+
+patientSessRouter.get("/:id/download-session", PatientSession.downloadSessionPdf);
+
+patientSessRouter.patch("/:id/rate", PatientSession.rateSession);

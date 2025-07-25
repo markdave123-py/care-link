@@ -21,3 +21,11 @@ export class LocalEmbeddings {
     return Array.from(output.data);     
   }
 }
+
+
+// export class LocalEmbeddings {
+//   async embed(text: string): Promise<number[]> {
+//     console.warn('LocalEmbeddings is currently disabled.');
+//     return [];
+//   }
+// }

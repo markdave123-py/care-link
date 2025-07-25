@@ -2,8 +2,8 @@ import type { Response, NextFunction } from "express";
 // import Send from "../../auth/utils/response.utils";
 import { RequestSession, Patient, Session, HealthPractitioner, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
-import { MailerService } from "../services";
-// import { generatePrescriptionPDF } from "../services";
+import { generateSessionPdf, MailerService } from "../services";
+// import { generateSessionPDF } from "../services";
 // import { where } from "sequelize";
 const mailerService = new MailerService();
 // declare module "express-serve-static-core" {
@@ -131,20 +131,35 @@ export class PatientSession {
     return responseHandler.success(res, HttpStatus.OK, "Session rated successfully", session);
   })
 
-  public static downloadPrescription = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
-    const { sessionId } = req.params;
+  // public static downloadPrescription = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
+  //   const { sessionId } = req.params;
 
-    const session = await Session.findByPk(sessionId);
+  //   const session = await Session.findByPk(sessionId);
+  //   if (!session) {
+  //     return next(new AppError("Session not found", HttpStatus.NOT_FOUND));
+  //   }
+
+  //   if (session.patient_id !== req.userId) {
+  //     return next(new AppError("You are not authorized to download this prescription", HttpStatus.UNAUTHORIZED));
+  //   }
+
+  //   // generatePrescriptionPDF(session, res);
+  // })
+
+  public static downloadSessionPdf = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
+    const { id } = req.params;
+
+    const session = await Session.findByPk(id);
     if (!session) {
       return next(new AppError("Session not found", HttpStatus.NOT_FOUND));
     }
 
-    if (session.patient_id !== req.userId) {
-      return next(new AppError("You are not authorized to download this prescription", HttpStatus.UNAUTHORIZED));
-    }
+    const pdfBuffer = await generateSessionPdf(session);
 
-    // generatePrescriptionPDF(session, res);
-  })
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=session-${id}.pdf`);
+    res.send(pdfBuffer);
+});
 }
 
 // export const patientSession = new RequestSession();

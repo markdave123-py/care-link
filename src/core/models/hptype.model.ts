@@ -34,7 +34,7 @@ HPType.init(
                 return raw ? raw.slice(1, -1).split(',').map(Number) : null;
               }
           },
-    },
+        },
     {
     sequelize,
     modelName: 'HPType',

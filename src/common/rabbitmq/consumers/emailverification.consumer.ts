@@ -3,7 +3,7 @@ import { Rabbitmq } from ".."
 
 export class EmailVerification {
     static consume = async () => {
-        const channel = Rabbitmq.getChannel();
+        const channel = await Rabbitmq.getChannel();
         const exchange = "email_service";
         const queue = "verify_email";
 

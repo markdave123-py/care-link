@@ -1,4 +1,6 @@
-import PDFDocument from "pdfkit";
+// import PDFDocument = require("pdfkit");
+
+import * as PDFDocument from 'pdfkit';
 
 export function generateSessionPdf(session: {
   id: string;

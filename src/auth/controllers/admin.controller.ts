@@ -13,7 +13,7 @@ import { AdminMapper } from "../mappers/admin.mapper";
 import type { AuthenticateRequest } from "../middlewares";
 import AuthController from "./auth.controller";
 import { buildUrl } from "../utils";
-import { googleAdmin, googlePatient } from "../config";
+import { googleAdmin } from "../config";
 import { PublishToQueue } from "../../common/rabbitmq/producer";
 
 export class AdminController {

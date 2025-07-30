@@ -6,6 +6,8 @@ import { loginSchema } from "../validation";
 
 const AdminRouter = Router();
 
+AdminRouter.get('/google', AdminController.initializeGoogleAuth);
+AdminRouter.get('/google/callback', AdminController.getAdminToken);
 AdminRouter.post('/register', AdminController.register);
 AdminRouter.post('/login', RequestValidator.validate(loginSchema), AdminController.login);
 AdminRouter.post('/refresh-access-token', AuthMiddleware.authenticateUser, AdminController.refreshAccessToken);

@@ -7,7 +7,7 @@ import type { WorkingHourDTO } from "../types";
 
 export class HpSchedule{
 
-    static getSchedule = CatchAsync.wrap(async (req:AuthenticateRequest, res: Response, next: NextFunction) => {
+    static getSchedule = CatchAsync.wrap(async (req:AuthenticateRequest, res: Response) => {
         const { hp_id } = req.params;
 
         const workingHours = await WorkingHour.findAll({

@@ -48,7 +48,6 @@ export default class Rag {
                 type: QueryTypes.SELECT
             }
     );
-    console.log(matches)
     return matches
   }
 
@@ -62,8 +61,6 @@ export default class Rag {
 
     const practitioner = await HealthPractitioner.findAll({
       where: {hp_type_id: {[Op.in]: typeIds, },
-      // is_verified: true,
-      // email_verified: true,
     },
       attributes:[
         'id',
@@ -74,11 +71,6 @@ export default class Rag {
       ],
       raw: true
     });
-
-    // if (practitioner.length === 0){ // get general 
-
-    // }
-
     return practitioner
   }
 }

@@ -9,7 +9,7 @@ class ForgotPasswordConsumer {
 exports.ForgotPasswordConsumer = ForgotPasswordConsumer;
 _a = ForgotPasswordConsumer;
 ForgotPasswordConsumer.consume = async () => {
-    const channel = __1.Rabbitmq.getChannel();
+    const channel = await __1.Rabbitmq.getChannel();
     const exchange = "email_service";
     const queue = "forgot-password";
     channel.assertExchange(exchange, 'topic', { durable: true });

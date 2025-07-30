@@ -94,14 +94,15 @@ PatientSession.rateSession = core_1.CatchAsync.wrap(async (req, res, next) => {
     await session.save();
     return core_1.responseHandler.success(res, core_1.HttpStatus.OK, "Session rated successfully", session);
 });
-PatientSession.downloadPrescription = core_1.CatchAsync.wrap(async (req, res, next) => {
-    const { sessionId } = req.params;
-    const session = await core_1.Session.findByPk(sessionId);
+PatientSession.downloadSessionPdf = core_1.CatchAsync.wrap(async (req, res, next) => {
+    const { id } = req.params;
+    const session = await core_1.Session.findByPk(id);
     if (!session) {
         return next(new core_1.AppError("Session not found", core_1.HttpStatus.NOT_FOUND));
     }
-    if (session.patient_id !== req.userId) {
-        return next(new core_1.AppError("You are not authorized to download this prescription", core_1.HttpStatus.UNAUTHORIZED));
-    }
+    const pdfBuffer = await (0, services_1.generateSessionPdf)(session);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=session-${id}.pdf`);
+    res.send(pdfBuffer);
 });
 //# sourceMappingURL=patient.session.js.map

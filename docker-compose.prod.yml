@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file: .env.prod    
+    environment:
+      POSTGRES_URI: ${POSTGRES_URI} 
+      TRANSFORMERS_CACHE: ${TRANSFORMERS_CACHE}
+      USE_ONNXRUNTIME_NODE: "0"
+    depends_on: [rabbitmq]
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    env_file: .env.prod
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/data
+
+volumes:
+  rabbitmq_data:

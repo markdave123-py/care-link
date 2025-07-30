@@ -12,6 +12,8 @@ services:
 
   app:
     build: .
+    ports:
+      - "3000:3000"
     develop:
       watch:
         - action: sync
@@ -39,6 +41,7 @@ services:
       - "15672:15672"
     env_file: .env
     environment:
+      - RABBITMQ_URL=${RABBITMQ_URL}
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     volumes:

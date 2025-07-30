@@ -25,7 +25,6 @@ class Rag {
             replacements: { emb: embLiteral },
             type: sequelize_1.QueryTypes.SELECT
         });
-        console.log(matches);
         return matches;
     }
     async getHPsbySymptom(symptom) {

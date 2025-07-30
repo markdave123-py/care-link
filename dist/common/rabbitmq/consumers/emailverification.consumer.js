@@ -9,7 +9,7 @@ class EmailVerification {
 exports.EmailVerification = EmailVerification;
 _a = EmailVerification;
 EmailVerification.consume = async () => {
-    const channel = __1.Rabbitmq.getChannel();
+    const channel = await __1.Rabbitmq.getChannel();
     const exchange = "email_service";
     const queue = "verify_email";
     channel.assertExchange(exchange, 'topic', { durable: true });

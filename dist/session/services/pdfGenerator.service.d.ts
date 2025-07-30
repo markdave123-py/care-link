@@ -1,14 +1,9 @@
-import type { Response } from 'express';
-interface SessionPDF {
-    id: string | number;
-    createdAt: Date | string;
-    diagnosis?: string;
-    prescription?: string;
-    patient: {
-        firstname: string;
-        lastname: string;
-        email: string;
-    };
-}
-export declare const generatePrescriptionPDF: (session: SessionPDF, res: Response) => void;
-export {};
+export declare function generateSessionPdf(session: {
+    id: string;
+    patient_symptoms: string;
+    health_practitioner_report: string;
+    diagnosis: string;
+    prescription: string;
+    status: string;
+    time: Date;
+}): Promise<Buffer>;

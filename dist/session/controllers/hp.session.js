@@ -141,7 +141,7 @@ HpSession.createFollowUpSession = core_1.CatchAsync.wrap(async (req, res, next) 
         return next(new core_1.AppError("Health practitioner not found", core_1.HttpStatus.NOT_FOUND));
     }
     await mailerService.sendPatientSessionAcceptance(patient.email, `A follow-up session has been created for you with symptoms: ${parentSession.patient_symptoms}`);
-    await mailerService.sendPatientSessionAcceptance(healthPractitioner.email, `A follow-up session has been created for patient: ${patient === null || patient === void 0 ? void 0 : patient.firstname} ${patient === null || patient === void 0 ? void 0 : patient.lastname}`);
+    await mailerService.sendPractitionerFollowUpSessionAlert(healthPractitioner.email, `A follow-up session has been created for patient: ${patient === null || patient === void 0 ? void 0 : patient.firstname} ${patient === null || patient === void 0 ? void 0 : patient.lastname}`, patient === null || patient === void 0 ? void 0 : patient.firstname);
     parentSession.status = "havefollowup";
     await parentSession.save();
     return core_1.responseHandler.success(res, core_1.HttpStatus.CREATED, "Follow-up session created", followUpSession);

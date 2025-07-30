@@ -21,3 +21,6 @@ terraform-provider-aws_v5.100
 *.tfstate.*
 
 *.logs
+
+/.dist
+dist

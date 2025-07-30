@@ -9,7 +9,7 @@ class InviteAdminConsumer {
 exports.InviteAdminConsumer = InviteAdminConsumer;
 _a = InviteAdminConsumer;
 InviteAdminConsumer.consume = async () => {
-    const channel = __1.Rabbitmq.getChannel();
+    const channel = await __1.Rabbitmq.getChannel();
     const exchange = "email_service";
     const queue = "invite-admin";
     channel.assertExchange(exchange, 'topic', { durable: true });

@@ -20,3 +20,14 @@ variable "bucket_name" {
   description = "S3 bucket the application will use"
   default     = "hcs-dev-bucket"
 }
+
+variable "key_pair_name" {
+  description = "Existing EC2 key pair for SSH"
+  type        = string
+}
+
+variable "db_password" {
+  description = "Master password for RDS"
+  type        = string
+  sensitive   = true
+}

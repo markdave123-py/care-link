@@ -13,17 +13,17 @@ import { AdminMapper } from "../mappers/admin.mapper";
 import type { AuthenticateRequest } from "../middlewares";
 import AuthController from "./auth.controller";
 import { buildUrl } from "../utils";
-import { googlePatient } from "../config";
+import { googleAdmin, googlePatient } from "../config";
 import { PublishToQueue } from "../../common/rabbitmq/producer";
 
 export class AdminController {
 	private static type: string = "admin";
 	static initializeGoogleAuth = async (_: Request, res: Response) => {
-		const consent_screen = buildUrl(googlePatient);
+		const consent_screen = buildUrl(googleAdmin);
 		res.redirect(consent_screen);
 	};
 	
-	static getPatientToken = async (req: Request, res: Response): Promise<void> => {
+	static getAdminToken = async (req: Request, res: Response): Promise<void> => {
 		console.log(req.query);
 
 		const { code } = req.query;

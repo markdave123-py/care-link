@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   app:
-    build: .
+    image: 491192276306.dkr.ecr.us-east-2.amazonaws.com/hcs-terraform-backend-repo:latest
     ports:
       - "3000:3000"
     env_file: .env.prod    

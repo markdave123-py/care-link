@@ -161,7 +161,7 @@ export class HpSession{
 
         //Send notification emails to both patient and health practitioner
         await mailerService.sendPatientSessionAcceptance(patient.email, `A follow-up session has been created for you with symptoms: ${parentSession.patient_symptoms}`);
-        await mailerService.sendPatientSessionAcceptance(healthPractitioner.email, `A follow-up session has been created for patient: ${patient?.firstname} ${patient?.lastname}`);
+        await mailerService.sendPractitionerFollowUpSessionAlert(healthPractitioner.email, `A follow-up session has been created for patient: ${patient?.firstname} ${patient?.lastname}`, patient?.firstname);
 
         //update status of the parent session to havefollowup
         parentSession.status = "havefollowup";

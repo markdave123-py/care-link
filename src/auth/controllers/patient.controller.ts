@@ -77,7 +77,7 @@ class PatientController {
                 defaults: { email,
                 firstname: given_name,
                 lastname: family_name,
-                password: "null",
+                password: null,
 				refresh_token: "",
                 email_verified,
                 createdAt: new Date(),
@@ -128,7 +128,7 @@ class PatientController {
 				where: { email },
 			});
 			if (!patient?.password) {
-				return next(new AppError("Invalid credential", 404));
+				return next(new AppError("Invalid credentials", 401));
 			}
 
 			const isPasswordValid = await bcrypt.compare(password, patient.password);
@@ -234,6 +234,7 @@ class PatientController {
 
 			const user = await Patient.findOne({
 				where: { id: userId },
+				attributes: { exclude: ["password"] }
 			});
 
 			if (!user || !refreshToken) {
@@ -255,7 +256,7 @@ class PatientController {
 			return Send.success(
 				res, 
 				"Access Token refreshed successfully",
-				PatientMapper.patientResponse(user),
+				{...user},
 			);
 		}
 	);
@@ -298,24 +299,7 @@ class PatientController {
 			return Send.success(
 				res,
 				`Patient with ID: ${userId}`,
-				PatientMapper.patientResponse(patient),
-			);
-		}
-	);
-
-	static getAllPatients = CatchAsync.wrap(
-		async (req: Request, res: Response, next: NextFunction) => {
-			const allPatients = await Patient.findAll({
-				attributes: { exclude: ['password'] }
-			});
-			if (!allPatients) {
-				return next(new AppError("No Patient seen", 404));
-			}
-
-			return Send.success(
-				res,
-				"All Patients",
-				[...allPatients],
+				{...patient},
 			);
 		}
 	);
@@ -326,6 +310,7 @@ class PatientController {
 
 			const patient = await Patient.findOne({
 				where: { id: patientId },
+				attributes: { exclude: ["password"] },
 			});
 
 			if (!patient) {
@@ -339,7 +324,7 @@ class PatientController {
 			return Send.success(
 				res,
 				"Patient deleted successfully",
-				PatientMapper.patientResponse(patient),
+				{...patient},
 			);
 		}
 	);
@@ -356,7 +341,10 @@ class PatientController {
 		
 		await AuthController.forgotPassword(this.type, email, passwordForgetter.id);
 
-		return Send.success(res, "Link to reset password sent successfully")
+		return Send.success(
+			res,
+			"Link to reset password sent successfully",
+		)
 	});
 
 	static resetPassword = CatchAsync.wrap(async (req: Request, res: Response, next: NextFunction) => {

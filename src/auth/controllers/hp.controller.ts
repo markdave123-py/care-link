@@ -339,21 +339,6 @@ class HpController {
 		}
 	);
 
-	static getAllPractitioners = CatchAsync.wrap(
-		async (req: Request, res: Response, next: NextFunction) => {
-			const allPractitioners = await HealthPractitioner.findAll({
-				attributes: { exclude: ["password"] }
-			});
-			if (!allPractitioners) {
-				return next(new AppError("No Practitioner seen", 404));
-			}
-
-			return Send.success(res, "All Health Practitioners", {
-				allPractitioners,
-			});
-		}
-	);
-
 	static deletePractitioner = CatchAsync.wrap(
 		async (req: Request, res: Response, next: NextFunction) => {
 			const practitionerId = req.params.id;

@@ -20,4 +20,10 @@ AdminRouter.get('/', AdminController.getAllAdmins);
 AdminRouter.post('/forgot-password', AdminController.forgotPassword);
 AdminRouter.post('/reset-password', AdminController.resetPassword);
 
+AdminRouter.post('/all-patients', AdminController.getAllPatients);
+AdminRouter.post('/all-hp', AdminController.getAllAdmins);
+
+AdminRouter.post('/patients/search', AdminController.searchPatientByEmailOrName);
+AdminRouter.post('/hp/search', AdminController.searchPractitionerByEmailOrName);
+
 export default AdminRouter;

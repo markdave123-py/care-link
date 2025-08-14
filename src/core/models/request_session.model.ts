@@ -13,6 +13,8 @@ export class RequestSession extends Model<
 	declare patient_symptoms: string;
 	declare ongoing_medication: string;
 	declare time: Date;
+	// declare start_time: CreationOptional<Date>;
+    // declare end_time: CreationOptional<Date>;
 }
 
 RequestSession.init(
@@ -30,6 +32,8 @@ RequestSession.init(
 		},
 		patient_symptoms: DataTypes.TEXT,
 		time : DataTypes.DATE,
+		// start_time : DataTypes.DATE,
+        // end_time : DataTypes.DATE,
 		ongoing_medication: DataTypes.TEXT,
 	},
 	{

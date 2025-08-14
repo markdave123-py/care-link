@@ -13,11 +13,13 @@ hpRouter.post('/register', uploadFile, RequestValidator.validate(registerHpSchem
 hpRouter.get('/verify-user', AuthMiddleware.verifyUserEmail, HpController.verifiedHealthPractitioner);
 hpRouter.post('/login', RequestValidator.validate(loginSchema), HpController.login);
 hpRouter.post('/refresh-access-token', AuthMiddleware.authenticateUser, HpController.refreshAccessToken);
-hpRouter.get('/:id', HpController.getPractitionerById);
 hpRouter.delete('/:id', HpController.deletePractitioner);
-hpRouter.get('/', HpController.getAllPractitioners);
 hpRouter.post('/logout', AuthMiddleware.authenticateUser, HpController.logout);
 hpRouter.post('/forgot-password', HpController.forgotPassword);
 hpRouter.post('/reset-password', HpController.resetPassword);
+
+// For Admin
+// hpRouter.get('/', HpController.getAllPractitioners);
+// hpRouter.get('/:id', HpController.getPractitionerById);
 
 export default hpRouter;

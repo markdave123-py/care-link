@@ -17,6 +17,12 @@ export class Patient extends Model<
 	declare lastname: string;
 	declare password: string | null;
 	declare profile_picture: string | null;
+	// declare phone_number: string | null;
+	// declare date_of_birth: Date | null;
+	// declare address: string | null;
+	// declare allergies: string | null;
+	// declare emergency_contact: string | null;
+	// declare bio: string | null;
 	declare refresh_token: string | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -54,6 +60,30 @@ Patient.init(
 			type: DataTypes.TEXT,
 			allowNull: true,
 		},
+		// phone_number: {
+		// 	type: DataTypes.STRING,
+		// 	allowNull: true,
+		// },
+		// date_of_birth: {
+		// 	type: DataTypes.DATE,
+		// 	allowNull: true,
+		// },
+		// address: {
+		// 	type: DataTypes.STRING,
+		// 	allowNull: true,
+		// },
+		// allergies: {
+		// 	type: DataTypes.STRING,
+		// 	allowNull: true,
+		// },
+		// emergency_contact: {
+		// 	type: DataTypes.STRING,
+		// 	allowNull: true,
+		// },
+		// bio: {
+		// 	type: DataTypes.STRING,
+		// 	allowNull: true,
+		// },
 		refresh_token: {
 			type: DataTypes.TEXT,
 			allowNull: true,

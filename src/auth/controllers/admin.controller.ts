@@ -18,6 +18,7 @@ import { buildUrl } from "../utils";
 import { googleAdmin } from "../config";
 import { PublishToQueue } from "../../common/rabbitmq/producer";
 import { Op } from "sequelize";
+import type { WhereOptions } from "sequelize";
 
 export class AdminController {
   private static type: string = "admin";
@@ -463,7 +464,7 @@ export class AdminController {
   );
 
   static searchPatientByEmailOrName = CatchAsync.wrap(
-	async (req: Request, res: Response, next: NextFunction) => {
+	async (req: Request, res: Response) => {
 		const { name, email } = req.query;
 
 		if (!name || !email) {
@@ -475,7 +476,7 @@ export class AdminController {
 				[Op.or]: [
 					email ? { email: { [Op.iLike]: `%${email}%` } }: undefined,
 					name ? { name: { [Op.iLike]: `%${name}%` } }: undefined
-				].filter(Boolean) as any[],
+				].filter(Boolean) as WhereOptions<Patient>[],
 			}},
 		);
 		if (!patient) {
@@ -491,7 +492,7 @@ export class AdminController {
   );
 
   static searchPractitionerByEmailOrName = CatchAsync.wrap(
-	async (req: Request, res: Response, next: NextFunction) => {
+	async (req: Request, res: Response) => {
 		const { name, email } = req.query;
 
 		if (!name || !email) {
@@ -503,7 +504,7 @@ export class AdminController {
 				[Op.or]: [
 					email ? { email: { [Op.iLike]: `%${email}%` } }: undefined,
 					name ? { name: { [Op.iLike]: `%${name}%` } }: undefined
-				].filter(Boolean) as any[],
+				].filter(Boolean) as WhereOptions<HealthPractitioner>[],
 			}},
 		);
 		if (!hp) {

@@ -3,7 +3,7 @@ import * as jwt from "jsonwebtoken";
 
 import Send from "../utils/response.utils";
 import { config } from "dotenv";
-import { Admin, CatchAsync, EmailVerificationToken } from "../../core";
+import { Admin, CatchAsync, EmailVerificationToken, HealthPractitioner, Patient } from "../../core";
 import { AppError } from "../../core";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
@@ -39,6 +39,65 @@ class AuthMiddleware {
 			) as DecodedToken;
 
 			req.userId = decodedToken.userId;
+			next();
+		}
+	);
+
+	static authenticatePatient = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+			const token = req.cookies.accessToken;
+
+			if (!process.env.JWT_SECRET) {
+				return next(new AppError("Missing environment variable", 500));
+			}
+
+			if (!token) {
+				return Send.unauthorized(res, "you are unauthorized",null);
+			}
+
+			const decodedToken = jwt.verify(
+				token,
+				process.env.JWT_SECRET
+			) as DecodedToken;
+
+			const userId = decodedToken.userId;
+			const patient = await Patient.findOne({
+				where: { id: userId }
+			});
+
+			if (!patient) {
+				return next(new AppError("You are not a patient", 401));
+			}
+			next();
+		}
+	);
+
+	static authenticateHp = CatchAsync.wrap(
+		async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+			const token = req.cookies.accessToken;
+
+			if (!process.env.JWT_SECRET) {
+				return next(new AppError("Missing environment variable", 500));
+			}
+
+			if (!token) {
+				return Send.unauthorized(res, "you are unauthorized",null);
+			}
+
+			const decodedToken = jwt.verify(
+				token,
+				process.env.JWT_SECRET
+			) as DecodedToken;
+			console.log(decodedToken)
+
+			const userId = decodedToken.userId;
+			const hp = await HealthPractitioner.findOne({
+				where: { id: userId }
+			});
+
+			if (!hp) {
+				return next(new AppError("You are not a Health Practitioner", 401));
+			}
 			next();
 		}
 	);

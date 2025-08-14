@@ -5,8 +5,13 @@ export const registerPatientSchema = Joi.object({
     lastname: Joi.string().min(3).max(25).required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(6).max(100).required(),
-    // profilePicture: Joi.string().uri(),
-    // birthDate: Joi.date().required(),
+    // profile_picture: Joi.string().uri(),
+    // date_of_birth: Joi.date().required(),
+    // phone_number: Joi.string().required(),
+    // address: Joi.string().required(),
+    // allergies: Joi.array().items(Joi.string()).required(),
+    // emergency_contact: Joi.string().required(),
+    // bio: Joi.string().required(),
 });
 
 export const loginSchema = Joi.object({

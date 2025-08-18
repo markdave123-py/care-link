@@ -9,7 +9,8 @@ export function generateSessionPdf(session: {
   diagnosis: string;
   prescription: string;
   status: string;
-  time: Date;
+  start_time: Date;
+  end_time: Date;
 }): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50 });
@@ -56,8 +57,8 @@ export function generateSessionPdf(session: {
       .fontSize(12)
       .font("Helvetica")
       .text(`📄 Session ID: ${session.id}`, 60, doc.y + 10)
-      .text(`📅 Date: ${session.time.toDateString()}`)
-      .text(`⏰ Time: ${session.time.toLocaleTimeString()}`)
+      .text(`📅 Date: ${session.start_time.toDateString()}`)
+      .text(`⏰ Time: ${session.start_time.toLocaleTimeString()} - ${session.end_time.toLocaleTimeString()}`)
       .text(`🟢 Status: ${session.status}`);
 
     doc.moveDown(5);

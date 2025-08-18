@@ -1,5 +1,6 @@
-import express, { Request, Response } from "express";
-import { google, calendar_v3 } from "googleapis";
+// import express, { Request, Response } from "express";
+import type { calendar_v3 } from "googleapis";
+import { google } from "googleapis";
 import * as dotenv from "dotenv";
 
 dotenv.config();

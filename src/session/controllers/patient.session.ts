@@ -13,6 +13,8 @@ const mailerService = new MailerService();
 // }
 
 export class PatientSession {
+
+
   //Allows a patient to request a session
   public static requestSession = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
     const { patient_symptoms, hp_id, ongoing_medication, time} = req.body;
@@ -30,12 +32,17 @@ export class PatientSession {
       return next(new AppError("Patient not found", HttpStatus.NOT_FOUND));
     }
 
+    // Date-Time manipulation
+    const startDate = new Date(time);  // convert payload string to Date
+    const endDate = new Date(startDate.getTime() + 30 * 60 * 1000); // +30 mins
+
     const newRequest = await RequestSession.create({
       patient_id : req.userId,
       health_practitioner_id: hp_id,
       patient_symptoms,
       ongoing_medication,
-      time
+      start_time : startDate,
+      end_time : endDate,
     });
 
     await mailerService.sendSessionRequestAlert(
@@ -53,6 +60,8 @@ export class PatientSession {
 
     return responseHandler.success(res, HttpStatus.OK, "Session request created successfully", newRequest);
   });
+
+
 // Allows a patient to cancel a session request
   public static cancelRequest = CatchAsync.wrap(async(req: AuthenticateRequest, res : Response, next: NextFunction) : Promise<void> => {
     const patient_id = req.userId;
@@ -75,15 +84,17 @@ export class PatientSession {
     }
     await mailerService.sendPatientCancelationEmail(
       patient.email,
-      `Health Practitioner Name:  ${healthPractitioner.firstname} ${healthPractitioner.lastname}, Scheduled Time: ${requestSession.time.toString()}`
+      `Health Practitioner Name:  ${healthPractitioner.firstname} ${healthPractitioner.lastname}, Scheduled Time: ${requestSession.start_time.toString()} to ${requestSession.end_time.toString()}`
     );  
     await mailerService.sendPractitionerCancelationEmail(
       healthPractitioner.email,
-      `Patient Name:  ${patient.firstname} ${patient.lastname}, Scheduled Time: ${requestSession.time.toString()}`
+      `Patient Name:  ${patient.firstname} ${patient.lastname}, Scheduled Time: ${requestSession.start_time.toString()} to ${requestSession.end_time.toString()}`
     );
     await requestSession.save();
     return responseHandler.success(res, HttpStatus.OK, "Session request cancelled successfully", requestSession);
   });
+
+
 //Allows a patient to get their session request history
   public static getPatientSessions = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
     const patient_id = req.userId;
@@ -103,6 +114,7 @@ export class PatientSession {
 
     return responseHandler.success(res, HttpStatus.OK, "Session requests retrieved successfully", sessions);
   });
+
 
   public static rateSession = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
     const { rating } = req.body;
@@ -146,6 +158,8 @@ export class PatientSession {
   //   // generatePrescriptionPDF(session, res);
   // })
 
+
+
   public static downloadSessionPdf = CatchAsync.wrap(async (req: AuthenticateRequest, res: Response, next: NextFunction): Promise<void> => {
     const { id } = req.params;
 
@@ -160,6 +174,7 @@ export class PatientSession {
     res.setHeader("Content-Disposition", `attachment; filename=session-${id}.pdf`);
     res.send(pdfBuffer);
 });
+
 }
 
 // export const patientSession = new RequestSession();

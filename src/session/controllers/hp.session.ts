@@ -1,5 +1,5 @@
 import type { Response, NextFunction } from "express";
-import { RequestSession, Patient, HealthPractitioner, Session, AppError, CatchAsync, responseHandler, HttpStatus } from "../../core";
+import { RequestSession, Patient, HealthPractitioner, Session, AppError, CatchAsync, responseHandler, HttpStatus, createGoogleMeetEvent } from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
 import { MailerService } from "../services";
 const mailerService = new MailerService();
@@ -54,12 +54,16 @@ export class HpSession{
             diagnosis: "",
             prescription: "",
             rating: 0,
-            time : request_session.time
+            start_time : request_session.start_time,
+            end_time : request_session.end_time
         })
-        await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request with  ${request_session} has been accepted! `)
+        const meetingLink = createGoogleMeetEvent(newSession.id, newSession.start_time.toISOString(), newSession.end_time.toISOString());
+        await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request with has been accepted! Join at the designated time with this link : ${meetingLink}`)
         return responseHandler.success(res, HttpStatus.OK, "Session Request accepted successfully!", newSession);
     })
-//This endpoint is responsible for starting a session officailly also means kicking the session off by a hp (protect this route with hp role checking middleware)
+
+
+//This endpoint is responsible for starting a session officially also means kicking the session off by a hp (protect this route with hp role checking middleware)
     public static startSession = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next) =>{
         // const hp_id = req.userId;
         const {sessionId} = req.params;
@@ -129,6 +133,9 @@ export class HpSession{
         if(parentSession.status !== "completed"){
             return next(new AppError("Parent session must be completed before creating a follow-up session", HttpStatus.BAD_REQUEST));
         }
+        const startDate = new Date(time);  // convert payload string to Date
+        const endDate = new Date(startDate.getTime() + 30 * 60 * 1000); // +30 mins
+
         const followUpSession = await Session.create({
             patient_id: parentSession.patient_id,
             health_practitioner_id: parentSession.health_practitioner_id,
@@ -139,7 +146,8 @@ export class HpSession{
             diagnosis: "",
             prescription: "",
             rating: 0,
-            time
+            start_time : startDate,
+            end_time : endDate
         });
 
         // If the follow-up session creation fails, return an error

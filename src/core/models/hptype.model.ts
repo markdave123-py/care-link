@@ -34,10 +34,10 @@ HPType.init(
                 return raw ? raw.slice(1, -1).split(',').map(Number) : null;
               }
           },
-        //   embedding: {
+        // embedding: {
         //       type: DataTypes.TEXT, // or DataTypes.ARRAY(DataTypes.FLOAT)
         //       allowNull: true,
-        //   }
+        // }
 
         },
     {

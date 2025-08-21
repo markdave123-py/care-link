@@ -1,11 +1,12 @@
 import type { Response, NextFunction } from "express";
-import { RequestSession, Patient, HealthPractitioner, Session, AppError, CatchAsync, responseHandler, HttpStatus, createGoogleMeetEvent } from "../../core";
+import { RequestSession, Patient, HealthPractitioner, Session, AppError, CatchAsync, responseHandler, HttpStatus, createJitsiMeeting} from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
 import { MailerService } from "../services";
 const mailerService = new MailerService();
 
 
 export class HpSession{
+
 //This endpoint is responsible for declining session request (protect this route with hp role checking middleware)
     public static declineRequest = CatchAsync.wrap(async (req:AuthenticateRequest, res: Response, next: NextFunction) => {
         const hp_id = req.userId;
@@ -30,6 +31,7 @@ export class HpSession{
         return responseHandler.success(res, HttpStatus.OK, "Session Request declined successfully!");
 
     })
+
 //This endpoint is responsible for accepting a session request (protect this route with hp role checking middleware)
     public static acceptRequest = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next: NextFunction) =>{
         const hp_id = req.userId;
@@ -57,9 +59,13 @@ export class HpSession{
             start_time : request_session.start_time,
             end_time : request_session.end_time
         })
-        const meetingLink = createGoogleMeetEvent(newSession.id, newSession.start_time.toISOString(), newSession.end_time.toISOString());
-        await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request with has been accepted! Join at the designated time with this link : ${meetingLink}`)
+        // const meetingLink = await createDailyMeeting();
+        const meetingLink = createJitsiMeeting();
+        console.log("Jitsi meeting link:", meetingLink);
+        // await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request with has been accepted! Join at the designated time with this link : ${meetingLink}`)
+        await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request with has been accepted! Join at the designated time with this link : ${meetingLink.meetingUrl}`);
         return responseHandler.success(res, HttpStatus.OK, "Session Request accepted successfully!", newSession);
+
     })
 
 

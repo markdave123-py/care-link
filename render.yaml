@@ -3,8 +3,7 @@ services:
   - type: web
     name: hcs-app
     runtime: docker
-    region: frankfurt            # or closest to you/your users
-    plan: starter                # pick what fits
+    plan: free                # pick what fits
     healthCheckPath: /healthz    # adjust to your app
     envVars:
       # Render injects PORT (defaults to 10000). Your app MUST bind to 0.0.0.0:$PORT
@@ -78,21 +77,16 @@ services:
       - key: SLOT_LENGTH_MINUTES
         value: "30"
 
-    disk:
-      name: hf-cache
-      mountPath: /var/cache/huggingface
-      sizeGB: 10
+    # disk:
+    #   name: hf-cache
+    #   mountPath: /var/cache/huggingface
+    #   sizeGB: 10
 
   # --- RabbitMQ (Private Service, internal network only) ---
   - type: pserv
     name: rabbitmq
     runtime: docker
-    plan: starter
-    region: frankfurt
-    disk:
-      name: rabbitmq-data
-      mountPath: /var/lib/rabbitmq
-      sizeGB: 10
+    plan: free
     envVars:
       - key: RABBITMQ_DEFAULT_USER
         value: guest          # change in dashboard later

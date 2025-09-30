@@ -1,29 +1,35 @@
-node_modules
+# Node
+node_modules/
+dist/
+build/
+.generated/
+.generated/**
 
+# Env files — never commit real secrets
 .env
-.env.prod
-.env.*.local
+.env.*
+!.env.example
+
+# Prisma generated
 /generated/prisma
+
+# Local config
 config/*
 /models
 
-.env.development.local
-
-terraform.tfstate.backup
-terraform.tfstate
-
+# Terraform local state (use remote backend in prod)
 .terraform/
-/.terraform
-terraform-provider-aws_v5.100
 **/.terraform/*
-!.terraform/modules/
-
 *.tfstate
 *.tfstate.*
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars
+terraform.tfvars.json
 
+# Logs
 *.logs
 
+# Misc
 /.dist
-dist
 
-.env.prod

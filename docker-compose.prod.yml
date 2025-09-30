@@ -1,0 +1,50 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_PASSWORD}              
+      POSTGRES_DB: healthcare
+    volumes:
+      - /mnt/postgres:/var/lib/postgresql/data 
+      - ./db-init:/docker-entrypoint-initdb.d 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+  app:
+    image: 491192276306.dkr.ecr.us-east-2.amazonaws.com/hcs-terraform-backend-repo:latest
+    ports:
+      - "3000:3000"
+    env_file: .env.prod    
+    environment:
+      POSTGRES_URI: ${POSTGRES_URI} 
+      TRANSFORMERS_CACHE: ${TRANSFORMERS_CACHE}
+      USE_ONNXRUNTIME_NODE: "0"
+    volumes:
+      - huggingface:${TRANSFORMERS_CACHE}
+    depends_on: 
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    env_file: .env.prod
+    environment:
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/data
+
+volumes:
+  huggingface:
+  rabbitmq_data:

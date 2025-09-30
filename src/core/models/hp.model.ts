@@ -13,7 +13,7 @@ export class HealthPractitioner extends Model<
 	declare firstname: string;
 	declare lastname: string;
 	declare hp_type_id: string | null;
-	declare password: string;
+	declare password: string | null;
 	declare profile_picture: string | null;
 	declare identification_means: string | null;
 	declare identification_verified: string | null;
@@ -21,7 +21,7 @@ export class HealthPractitioner extends Model<
 	declare passport: string | null;
 	declare nin: string | null;
 	declare bvn: string | null;
-	declare available_time: Date[] | null;
+	declare timezone: string | null; 
 	declare idcard: string | null;
 	declare work_identification_number: string | null;
 	declare company_name: string | null;
@@ -44,7 +44,7 @@ HealthPractitioner.init(
 		is_verified: DataTypes.BOOLEAN,
 		firstname: DataTypes.STRING,
 		lastname: DataTypes.STRING,
-		hp_type_id: { type: DataTypes.UUID, allowNull: false },
+		hp_type_id: { type: DataTypes.UUID, allowNull: true },
 		password: DataTypes.TEXT,
 		profile_picture: DataTypes.TEXT,
 		identification_means: DataTypes.ENUM(
@@ -61,7 +61,7 @@ HealthPractitioner.init(
 		passport: DataTypes.TEXT,
 		nin: DataTypes.STRING,
 		bvn: DataTypes.STRING,
-		available_time: DataTypes.ARRAY(DataTypes.DATE),
+		timezone: { type: DataTypes.STRING, allowNull: true, defaultValue: 'Africa/Lagos' },
 		idcard: DataTypes.TEXT,
 		work_identification_number: { type:DataTypes.STRING, unique: true },
 		company_name: DataTypes.TEXT,

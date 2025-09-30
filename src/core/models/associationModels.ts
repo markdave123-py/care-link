@@ -3,6 +3,8 @@ import { HealthPractitioner } from './hp.model';
 import { Session } from './session.model';
 import { RequestSession } from './request_session.model';
 import { HPType } from './hptype.model';
+import { WorkingHour } from './workinghour.model';
+import { AppointmentSlot } from './appointmentslot.model';
 
 export const associateModels = () => {
   // Patient
@@ -24,4 +26,23 @@ export const associateModels = () => {
 
   // HP Type
   HPType.hasMany(HealthPractitioner, { foreignKey: 'hp_type_id' });
+
+  // hp - workingHour
+  HealthPractitioner.hasMany(WorkingHour, { foreignKey: 'hp_id' });
+  WorkingHour.belongsTo(HealthPractitioner, { foreignKey: 'hp_id' });
+
+  // hp / patient - appointmentSlot
+  HealthPractitioner.hasMany(AppointmentSlot, { foreignKey: 'hp_id' });
+  AppointmentSlot.belongsTo(HealthPractitioner, { foreignKey: 'hp_id' });
+
+  Patient.hasMany(AppointmentSlot, { foreignKey: 'patient_id' });
+  AppointmentSlot.belongsTo(Patient, { foreignKey: 'patient_id' });
+
+  // requestSession - appointmentSlot
+  RequestSession.hasMany(AppointmentSlot, { foreignKey: 'request_session_id' });
+  AppointmentSlot.belongsTo(RequestSession, { foreignKey: 'request_session_id' });
+
+  // Session - appointmentSlot
+  Session.hasMany(AppointmentSlot, { foreignKey: 'session_id' });
+  AppointmentSlot.belongsTo(RequestSession, { foreignKey: 'session_id' });
 };

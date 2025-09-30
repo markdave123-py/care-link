@@ -5,3 +5,5 @@ export * from "./hptype.model";
 export * from "./patient.model";
 export * from "./request_session.model";
 export * from "./session.model";
+export * from "./appointmentslot.model";
+export * from "./workinghour.model"

@@ -1,0 +1,102 @@
+services:
+  # --- App (Web Service) ---
+  - type: web
+    name: hcs-app
+    runtime: docker
+    region: frankfurt            # or closest to you/your users
+    plan: starter                # pick what fits
+    healthCheckPath: /healthz    # adjust to your app
+    envVars:
+      # Render injects PORT (defaults to 10000). Your app MUST bind to 0.0.0.0:$PORT
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL        # from your Render Postgres (paste in dashboard)
+        sync: false
+      - key: RABBITMQ_URL        # internal to the pserv below
+        value: amqp://guest:guest@rabbitmq:5672/
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_TOKEN_SECRET
+        sync: false
+      - key: JWT_EMAIL_TOKEN_SECRET
+        sync: false
+      - key: JWT_INVITE_ADMIN_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+
+      # Put all your 3rd-party credentials here as secrets (sync: false)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_HP_REDIRECT_URI
+        sync: false
+      - key: GOOGLE_PATIENT_REDIRECT_URI
+        sync: false
+      - key: GOOGLE_TOKEN_INFO_URL
+        value: https://oauth2.googleapis.com/tokeninfo
+      - key: GOOGLE_TOKEN_ENDPOINT
+        value: https://oauth2.googleapis.com/token
+      - key: GOOGLE_SCOPE
+        value: "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email"
+      - key: GOOGLE_AUTHORIZATION_URL
+        value: https://accounts.google.com/o/oauth2/v2/auth
+      - key: GOOGLE_USERINFO
+        value: https://www.googleapis.com/oauth2/v2/userinfo
+
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "465"
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+
+      - key: OPENAI_APIKEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+
+      - key: AWS_REGION
+        sync: false
+      - key: AWS_S3_BUCKET
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+
+      - key: CLIENT_URL
+        sync: false
+
+      # Optional cache path; if you want persistence, uncomment the disk block below
+      - key: TRANSFORMERS_CACHE
+        value: /var/cache/huggingface
+
+      - key: SLOT_LENGTH_MINUTES
+        value: "30"
+
+    disk:
+      name: hf-cache
+      mountPath: /var/cache/huggingface
+      sizeGB: 10
+
+  # --- RabbitMQ (Private Service, internal network only) ---
+  - type: pserv
+    name: rabbitmq
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    disk:
+      name: rabbitmq-data
+      mountPath: /var/lib/rabbitmq
+      sizeGB: 10
+    envVars:
+      - key: RABBITMQ_DEFAULT_USER
+        value: guest          # change in dashboard later
+      - key: RABBITMQ_DEFAULT_PASS
+        sync: false
+      - key: RABBITMQ_ERLANG_COOKIE
+        sync: false

@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const patient_controller_1 = require("../controllers/patient.controller");
+const core_1 = require("../../core");
+const validation_1 = require("../validation");
+const auth_controller_1 = require("../controllers/auth.controller");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const patientRouter = (0, express_1.Router)();
+patientRouter.get('/google', patient_controller_1.default.initializeGoogleAuth);
+patientRouter.get('/google/callback', patient_controller_1.default.getPatientToken);
+patientRouter.post('/register', core_1.RequestValidator.validate(validation_1.registerPatientSchema), patient_controller_1.default.register);
+patientRouter.post('/login', core_1.RequestValidator.validate(validation_1.loginSchema), patient_controller_1.default.login);
+patientRouter.get('/verify-user', auth_middleware_1.default.verifyUserEmail, patient_controller_1.default.verifiedPatient);
+patientRouter.post('/refresh-access-token', auth_middleware_1.default.authenticatePatient, patient_controller_1.default.refreshAccessToken);
+patientRouter.post('/forgot-password', auth_middleware_1.default.authenticatePatient, patient_controller_1.default.forgotPassword);
+patientRouter.post('/reset-password', auth_middleware_1.default.authenticatePatient, patient_controller_1.default.resetPassword);
+patientRouter.post('/logout', auth_middleware_1.default.authenticatePatient, auth_controller_1.default.logout);
+patientRouter.delete('/:id', patient_controller_1.default.deletePatient);
+exports.default = patientRouter;
+//# sourceMappingURL=patient.routes.js.map

@@ -17,6 +17,9 @@ export class Session extends Model<
     declare diagnosis: string;
     declare prescription: string;
     declare rating: number;
+    // declare time: CreationOptional<Date>;
+    declare start_time: CreationOptional<Date>;
+    declare end_time: CreationOptional<Date>;
 }
 
 Session.init(
@@ -39,8 +42,8 @@ Session.init(
             type: DataTypes.UUID,
         },
         status: {
-            type: DataTypes.ENUM('completed', 'inprogress', 'havefollowup'),
-            defaultValue: 'inprogress',
+            type: DataTypes.ENUM('scheduled', 'completed', 'inprogress', 'havefollowup'), //samuel made changes here because the default value was inprogress and it wasn't correct kind of
+            defaultValue: 'scheduled',
         },
         parentId: {
             type: DataTypes.UUID,
@@ -57,6 +60,9 @@ Session.init(
         rating: {
             type: DataTypes.INTEGER,
         },
+        // time : DataTypes.DATE,
+        start_time : DataTypes.DATE,
+        end_time : DataTypes.DATE,
     },
     {
         sequelize,

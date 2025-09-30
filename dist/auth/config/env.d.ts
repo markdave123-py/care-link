@@ -1,0 +1,23 @@
+export declare const env: {
+    readonly NODE_ENV: string;
+    readonly GOOGLE_CLIENT_ID: string;
+    readonly GOOGLE_CLIENT_SECRET: string;
+    readonly GOOGLE_HP_REDIRECT_URI: string;
+    readonly GOOGLE_TOKEN_INFO_URL: string;
+    readonly SESSION_SECRET: string;
+    readonly STATE: string;
+    readonly JWT_SECRET: string;
+    readonly JWT_EXPIRES_IN: string;
+    readonly JWT_REFRESH_TOKEN_SECRET: string;
+    readonly JWT_REFRESH_TOKEN_EXPIRES_IN: string;
+    readonly POSTGRES_URI: string;
+    readonly OPENAI_APIKEY: string;
+    readonly OPENAI_MODEL: string;
+    readonly AWS_REGION: string;
+    readonly AWS_S3_BUCKET: string;
+    readonly AWS_ACCESS_KEY_ID: string;
+    readonly AWS_SECRET_ACCESS_KEY: string;
+    readonly RABBITMQ_URL: string;
+    readonly SLOT_LENGTH_MINUTES: string;
+};
+export declare function getSlotLen(): number;

@@ -1,6 +1,9 @@
 # Node
 node_modules/
 dist/
+**/dist/
+
+
 build/
 .generated/
 .generated/**
@@ -30,6 +33,6 @@ terraform.tfvars.json
 # Logs
 *.logs
 
-# Misc
-/.dist
+# # Misc
+# /.dist
 

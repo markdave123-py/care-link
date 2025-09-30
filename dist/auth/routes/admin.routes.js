@@ -6,6 +6,8 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 const core_1 = require("../../core");
 const validation_1 = require("../validation");
 const AdminRouter = (0, express_1.Router)();
+AdminRouter.get('/google', controllers_1.AdminController.initializeGoogleAuth);
+AdminRouter.get('/google/callback', controllers_1.AdminController.getAdminToken);
 AdminRouter.post('/register', controllers_1.AdminController.register);
 AdminRouter.post('/login', core_1.RequestValidator.validate(validation_1.loginSchema), controllers_1.AdminController.login);
 AdminRouter.post('/refresh-access-token', auth_middleware_1.default.authenticateUser, controllers_1.AdminController.refreshAccessToken);
@@ -17,5 +19,9 @@ AdminRouter.delete('/:id', controllers_1.AdminController.deleteAdmin);
 AdminRouter.get('/', controllers_1.AdminController.getAllAdmins);
 AdminRouter.post('/forgot-password', controllers_1.AdminController.forgotPassword);
 AdminRouter.post('/reset-password', controllers_1.AdminController.resetPassword);
+AdminRouter.post('/all-patients', controllers_1.AdminController.getAllPatients);
+AdminRouter.post('/all-hp', controllers_1.AdminController.getAllAdmins);
+AdminRouter.post('/patients/search', controllers_1.AdminController.searchPatientByEmailOrName);
+AdminRouter.post('/hp/search', controllers_1.AdminController.searchPractitionerByEmailOrName);
 exports.default = AdminRouter;
 //# sourceMappingURL=admin.routes.js.map

@@ -140,6 +140,11 @@ HpController.register = core_1.CatchAsync.wrap(async (req, res, next) => {
     if (existingHp) {
         return next(new core_1.AppError("Email already in use", 400));
     }
+    const hptype = await core_1.HPType.findOne({
+        where: { id: hp_type_id }
+    });
+    if (!hptype)
+        return next(new core_1.AppError("Invalid health practitioner type", 404));
     const docUrls = await (0, upload_1.processFiles)(req.files, {
         profile_picture: "profile_picture",
         passport: "passport",
@@ -237,17 +242,6 @@ HpController.getPractitionerById = core_1.CatchAsync.wrap(async (req, res, next)
         return next(new core_1.AppError(`Practitioner with Id: ${userId} not found`, 404));
     }
     return response_utils_1.default.success(res, `Health Practitioner of ID: ${userId}`, hp_mapper_1.HpMapper.hpResponse(healthPractitioner));
-});
-HpController.getAllPractitioners = core_1.CatchAsync.wrap(async (req, res, next) => {
-    const allPractitioners = await core_1.HealthPractitioner.findAll({
-        attributes: { exclude: ["password"] }
-    });
-    if (!allPractitioners) {
-        return next(new core_1.AppError("No Practitioner seen", 404));
-    }
-    return response_utils_1.default.success(res, "All Health Practitioners", {
-        allPractitioners,
-    });
 });
 HpController.deletePractitioner = core_1.CatchAsync.wrap(async (req, res, next) => {
     const practitionerId = req.params.id;

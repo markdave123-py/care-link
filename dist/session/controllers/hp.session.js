@@ -53,9 +53,12 @@ HpSession.acceptRequest = core_1.CatchAsync.wrap(async (req, res, next) => {
         diagnosis: "",
         prescription: "",
         rating: 0,
-        time: request_session.time
+        start_time: request_session.start_time,
+        end_time: request_session.end_time
     });
-    await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request with  ${request_session} has been accepted! `);
+    const meetingLink = (0, core_1.createJitsiMeeting)();
+    console.log("Jitsi meeting link:", meetingLink);
+    await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request with has been accepted! Join at the designated time with this link : ${meetingLink.meetingUrl}`);
     return core_1.responseHandler.success(res, core_1.HttpStatus.OK, "Session Request accepted successfully!", newSession);
 });
 HpSession.startSession = core_1.CatchAsync.wrap(async (req, res, next) => {
@@ -117,6 +120,8 @@ HpSession.createFollowUpSession = core_1.CatchAsync.wrap(async (req, res, next) 
     if (parentSession.status !== "completed") {
         return next(new core_1.AppError("Parent session must be completed before creating a follow-up session", core_1.HttpStatus.BAD_REQUEST));
     }
+    const startDate = new Date(time);
+    const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
     const followUpSession = await core_1.Session.create({
         patient_id: parentSession.patient_id,
         health_practitioner_id: parentSession.health_practitioner_id,
@@ -127,7 +132,8 @@ HpSession.createFollowUpSession = core_1.CatchAsync.wrap(async (req, res, next) 
         diagnosis: "",
         prescription: "",
         rating: 0,
-        time
+        start_time: startDate,
+        end_time: endDate
     });
     if (!followUpSession) {
         return next(new core_1.AppError("Failed to create follow-up session", core_1.HttpStatus.INTERNAL_SERVER_ERROR));

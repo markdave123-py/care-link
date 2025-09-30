@@ -43,7 +43,8 @@ Session.init({
     rating: {
         type: sequelize_1.DataTypes.INTEGER,
     },
-    time: sequelize_1.DataTypes.DATE,
+    start_time: sequelize_1.DataTypes.DATE,
+    end_time: sequelize_1.DataTypes.DATE,
 }, {
     sequelize: db_1.default,
     modelName: "Session",

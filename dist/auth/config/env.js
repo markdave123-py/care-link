@@ -35,7 +35,7 @@ exports.env = {
     SLOT_LENGTH_MINUTES: requireEnv('SLOT_LENGTH_MINUTES')
 };
 function getSlotLen() {
-    let slotlen = parseInt(exports.env.SLOT_LENGTH_MINUTES, 10);
+    const slotlen = parseInt(exports.env.SLOT_LENGTH_MINUTES, 10);
     if (Number.isNaN(slotlen) || slotlen <= 0) {
         return 30;
     }

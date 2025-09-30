@@ -13,9 +13,7 @@ hpRouter.post('/register', upload_1.uploadFile, core_1.RequestValidator.validate
 hpRouter.get('/verify-user', auth_middleware_1.default.verifyUserEmail, hp_controller_1.default.verifiedHealthPractitioner);
 hpRouter.post('/login', core_1.RequestValidator.validate(validation_1.loginSchema), hp_controller_1.default.login);
 hpRouter.post('/refresh-access-token', auth_middleware_1.default.authenticateUser, hp_controller_1.default.refreshAccessToken);
-hpRouter.get('/:id', hp_controller_1.default.getPractitionerById);
 hpRouter.delete('/:id', hp_controller_1.default.deletePractitioner);
-hpRouter.get('/', hp_controller_1.default.getAllPractitioners);
 hpRouter.post('/logout', auth_middleware_1.default.authenticateUser, hp_controller_1.default.logout);
 hpRouter.post('/forgot-password', hp_controller_1.default.forgotPassword);
 hpRouter.post('/reset-password', hp_controller_1.default.resetPassword);

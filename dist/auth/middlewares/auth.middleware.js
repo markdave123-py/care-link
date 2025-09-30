@@ -22,6 +22,43 @@ AuthMiddleware.authenticateUser = core_1.CatchAsync.wrap(async (req, res, next) 
     req.userId = decodedToken.userId;
     next();
 });
+AuthMiddleware.authenticatePatient = core_1.CatchAsync.wrap(async (req, res, next) => {
+    const token = req.cookies.accessToken;
+    if (!process.env.JWT_SECRET) {
+        return next(new core_2.AppError("Missing environment variable", 500));
+    }
+    if (!token) {
+        return response_utils_1.default.unauthorized(res, "you are unauthorized", null);
+    }
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decodedToken.userId;
+    const patient = await core_1.Patient.findOne({
+        where: { id: userId }
+    });
+    if (!patient) {
+        return next(new core_2.AppError("You are not a patient", 401));
+    }
+    next();
+});
+AuthMiddleware.authenticateHp = core_1.CatchAsync.wrap(async (req, res, next) => {
+    const token = req.cookies.accessToken;
+    if (!process.env.JWT_SECRET) {
+        return next(new core_2.AppError("Missing environment variable", 500));
+    }
+    if (!token) {
+        return response_utils_1.default.unauthorized(res, "you are unauthorized", null);
+    }
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decodedToken);
+    const userId = decodedToken.userId;
+    const hp = await core_1.HealthPractitioner.findOne({
+        where: { id: userId }
+    });
+    if (!hp) {
+        return next(new core_2.AppError("You are not a Health Practitioner", 401));
+    }
+    next();
+});
 AuthMiddleware.authenticateAdmin = core_1.CatchAsync.wrap(async (req, res, next) => {
     const token = req.cookies.accessToken;
     if (!process.env.JWT_SECRET) {

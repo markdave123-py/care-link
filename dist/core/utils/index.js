@@ -21,4 +21,5 @@ __exportStar(require("./catchAsync"), exports);
 __exportStar(require("./jwtHelper"), exports);
 __exportStar(require("./mailer"), exports);
 __exportStar(require("./localEmbed"), exports);
+__exportStar(require("./jitsiVideo"), exports);
 //# sourceMappingURL=index.js.map

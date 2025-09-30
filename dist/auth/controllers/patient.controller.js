@@ -63,7 +63,7 @@ PatientController.getPatientToken = async (req, res) => {
             defaults: { email,
                 firstname: given_name,
                 lastname: family_name,
-                password: "null",
+                password: null,
                 refresh_token: "",
                 email_verified,
                 createdAt: new Date(),
@@ -102,7 +102,7 @@ PatientController.login = core_1.CatchAsync.wrap(async (req, res, next) => {
         where: { email },
     });
     if (!(patient === null || patient === void 0 ? void 0 : patient.password)) {
-        return next(new core_1.AppError("Invalid credential", 404));
+        return next(new core_1.AppError("Invalid credentials", 401));
     }
     const isPasswordValid = await bcrypt.compare(password, patient.password);
     if (!isPasswordValid) {
@@ -176,6 +176,7 @@ PatientController.refreshAccessToken = core_1.CatchAsync.wrap(async (req, res) =
     const refreshToken = req.cookies.refreshToken;
     const user = await core_1.Patient.findOne({
         where: { id: userId },
+        attributes: { exclude: ["password"] }
     });
     if (!user || !refreshToken) {
         return response_utils_1.default.unauthorized(res, "Request Token not found");
@@ -190,7 +191,7 @@ PatientController.refreshAccessToken = core_1.CatchAsync.wrap(async (req, res) =
         maxAge: 15 * 60 * 1000,
         sameSite: "strict",
     });
-    return response_utils_1.default.success(res, "Access Token refreshed successfully", patient_mapper_1.PatientMapper.patientResponse(user));
+    return response_utils_1.default.success(res, "Access Token refreshed successfully", Object.assign({}, user));
 });
 PatientController.verifiedPatient = core_1.CatchAsync.wrap(async (req, res, next) => {
     const verifiedUserId = req.userId;
@@ -211,27 +212,19 @@ PatientController.getPatientById = core_1.CatchAsync.wrap(async (req, res, next)
     if (!patient) {
         return next(new core_1.AppError(`Patient with Id: ${userId} not found`, 404));
     }
-    return response_utils_1.default.success(res, `Patient with ID: ${userId}`, patient_mapper_1.PatientMapper.patientResponse(patient));
-});
-PatientController.getAllPatients = core_1.CatchAsync.wrap(async (req, res, next) => {
-    const allPatients = await core_1.Patient.findAll({
-        attributes: { exclude: ['password'] }
-    });
-    if (!allPatients) {
-        return next(new core_1.AppError("No Patient seen", 404));
-    }
-    return response_utils_1.default.success(res, "All Patients", [...allPatients]);
+    return response_utils_1.default.success(res, `Patient with ID: ${userId}`, Object.assign({}, patient));
 });
 PatientController.deletePatient = core_1.CatchAsync.wrap(async (req, res, next) => {
     const patientId = req.params.id;
     const patient = await core_1.Patient.findOne({
         where: { id: patientId },
+        attributes: { exclude: ["password"] },
     });
     if (!patient) {
         return next(new core_1.AppError(`Patient with ID ${patientId} not found`, 404));
     }
     await patient.destroy();
-    return response_utils_1.default.success(res, "Patient deleted successfully", patient_mapper_1.PatientMapper.patientResponse(patient));
+    return response_utils_1.default.success(res, "Patient deleted successfully", Object.assign({}, patient));
 });
 PatientController.forgotPassword = core_1.CatchAsync.wrap(async (req, res, next) => {
     const { email } = req.body;

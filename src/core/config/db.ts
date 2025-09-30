@@ -4,12 +4,11 @@ import { env } from '../../auth/config';
 export const sequelize = new Sequelize(env.POSTGRES_URI, {
     logging: false,
     dialect: 'postgres',
-    dialectOptions:{
+    dialectOptions: {
         ssl: {
-            require: true,
-            rejectUnauthorized: false    
+          require: true, // This ensures SSL is required
         }
-    }
+      }
 });
 
 export default sequelize;

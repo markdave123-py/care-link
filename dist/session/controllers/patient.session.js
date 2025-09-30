@@ -22,12 +22,15 @@ PatientSession.requestSession = core_1.CatchAsync.wrap(async (req, res, next) =>
     if (!patient) {
         return next(new core_1.AppError("Patient not found", core_1.HttpStatus.NOT_FOUND));
     }
+    const startDate = new Date(time);
+    const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
     const newRequest = await core_1.RequestSession.create({
         patient_id: req.userId,
         health_practitioner_id: hp_id,
         patient_symptoms,
         ongoing_medication,
-        time
+        start_time: startDate,
+        end_time: endDate,
     });
     await mailerService.sendSessionRequestAlert(healthPracticioner.email, patient.firstname, time.toString());
     if (!newRequest) {
@@ -54,8 +57,8 @@ PatientSession.cancelRequest = core_1.CatchAsync.wrap(async (req, res, next) => 
     if (!healthPractitioner || !patient) {
         return next(new core_1.AppError("Health Practitioner or patient not found", core_1.HttpStatus.NOT_FOUND));
     }
-    await mailerService.sendPatientCancelationEmail(patient.email, `Health Practitioner Name:  ${healthPractitioner.firstname} ${healthPractitioner.lastname}, Scheduled Time: ${requestSession.time.toString()}`);
-    await mailerService.sendPractitionerCancelationEmail(healthPractitioner.email, `Patient Name:  ${patient.firstname} ${patient.lastname}, Scheduled Time: ${requestSession.time.toString()}`);
+    await mailerService.sendPatientCancelationEmail(patient.email, `Health Practitioner Name:  ${healthPractitioner.firstname} ${healthPractitioner.lastname}, Scheduled Time: ${requestSession.start_time.toString()} to ${requestSession.end_time.toString()}`);
+    await mailerService.sendPractitionerCancelationEmail(healthPractitioner.email, `Patient Name:  ${patient.firstname} ${patient.lastname}, Scheduled Time: ${requestSession.start_time.toString()} to ${requestSession.end_time.toString()}`);
     await requestSession.save();
     return core_1.responseHandler.success(res, core_1.HttpStatus.OK, "Session request cancelled successfully", requestSession);
 });

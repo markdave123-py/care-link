@@ -6,5 +6,5 @@ export const ScheduleRouter = Router();
 
 ScheduleRouter.use(AuthMiddleware.authenticateUser);
 
-ScheduleRouter.put('/hp/working-hours', HpSchedule.upsertSchedule);
+ScheduleRouter.put('/hp/working-hours',AuthMiddleware.authenticateUser, HpSchedule.upsertSchedule);
 ScheduleRouter.get('/:hp_id/working-hours', HpSchedule.getSchedule);

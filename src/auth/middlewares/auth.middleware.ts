@@ -37,7 +37,6 @@ class AuthMiddleware {
 				token,
 				process.env.JWT_SECRET
 			) as DecodedToken;
-
 			req.userId = decodedToken.userId;
 			next();
 		}

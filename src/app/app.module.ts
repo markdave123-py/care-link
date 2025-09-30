@@ -11,9 +11,12 @@ import { InviteAdminConsumer } from "../common/rabbitmq/consumers/inviteAdmin.co
 import { ensureConstraints } from "src/core/config/db.ensureconstraints";
 
 export const startApp = async () => {
+  console.log("i am here")
   await sequelize.authenticate();
   console.log("Connected to DB");
 
+  await sequelize.query('CREATE EXTENSION IF NOT EXISTS vector');
+  
   associateModels();
 
   await sequelize.sync({ alter: true });
@@ -34,5 +37,6 @@ export const startApp = async () => {
   }
 
   const server = createServer(app);
-  server.listen(3000, () => console.log("Server is running on port 3000"));
+  const port = parseInt(process.env.PORT!) || 3000;
+  server.listen(port, "0.0.0.0", () => console.log("Server is running on port 3000"));
 };

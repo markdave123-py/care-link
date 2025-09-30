@@ -21,7 +21,7 @@ export class HealthPractitioner extends Model<
 	declare passport: string | null;
 	declare nin: string | null;
 	declare bvn: string | null;
-	declare available_time: Date[] | null;
+	declare timezone: string | null; 
 	declare idcard: string | null;
 	declare work_identification_number: string | null;
 	declare company_name: string | null;
@@ -61,7 +61,7 @@ HealthPractitioner.init(
 		passport: DataTypes.TEXT,
 		nin: DataTypes.STRING,
 		bvn: DataTypes.STRING,
-		available_time: DataTypes.ARRAY(DataTypes.DATE),
+		timezone: { type: DataTypes.STRING, allowNull: true, defaultValue: 'Africa/Lagos' },
 		idcard: DataTypes.TEXT,
 		work_identification_number: { type:DataTypes.STRING, unique: true },
 		company_name: DataTypes.TEXT,

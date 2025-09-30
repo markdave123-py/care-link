@@ -13,7 +13,7 @@ PublishToQueue.email = async (key, data) => {
         const exchange = "email_service";
         channel.assertExchange(exchange, 'topic', { durable: true });
         channel.publish(exchange, key, Buffer.from(JSON.stringify(data)), { persistent: true });
-        console.log(`Producer sent ${JSON.stringify(data)} to queue`);
+        console.log(`Sent message for email sending to queue`);
     }
     catch (err) {
         console.error("Error creating channel: ", err);

@@ -7,6 +7,8 @@ export interface DecodedToken {
 }
 declare class AuthMiddleware {
     static authenticateUser: (req: Request, res: Response, next: NextFunction) => void;
+    static authenticatePatient: (req: Request, res: Response, next: NextFunction) => void;
+    static authenticateHp: (req: Request, res: Response, next: NextFunction) => void;
     static authenticateAdmin: (req: Request, res: Response, next: NextFunction) => void;
     static refreshTokenValidation: (req: Request, res: Response, next: NextFunction) => void;
     static verifyUserEmail: (req: Request, res: Response, next: NextFunction) => void;

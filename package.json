@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build": "npm run clean && tsc && tsc-alias",
-    "start": "node dist/main.js",
+    "start": " npm run build && node dist/main.js",
     "dev": "nodemon --watch \"src/**/*.ts\" --exec \"ts-node -r tsconfig-paths/register\" src/main.ts",
     "lint": "eslint --ext .ts src ",
     "test": "jest --passWithNoTests"

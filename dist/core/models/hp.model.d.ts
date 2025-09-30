@@ -16,7 +16,7 @@ export declare class HealthPractitioner extends Model<InferAttributes<HealthPrac
     passport: string | null;
     nin: string | null;
     bvn: string | null;
-    available_time: Date[] | null;
+    timezone: string | null;
     idcard: string | null;
     work_identification_number: string | null;
     company_name: string | null;

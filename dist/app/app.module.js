@@ -12,8 +12,10 @@ const forgotpassword_consumer_1 = require("../common/rabbitmq/consumers/forgotpa
 const inviteAdmin_consumer_1 = require("../common/rabbitmq/consumers/inviteAdmin.consumer");
 const db_ensureconstraints_1 = require("../core/config/db.ensureconstraints");
 const startApp = async () => {
+    console.log("i am here");
     await db_1.default.authenticate();
     console.log("Connected to DB");
+    await db_1.default.query('CREATE EXTENSION IF NOT EXISTS vector');
     (0, associationModels_1.associateModels)();
     await db_1.default.sync({ alter: true });
     console.log("Models synced");

@@ -10,16 +10,17 @@ const auth_controller_1 = require("./auth.controller");
 const utils_1 = require("../utils");
 const config_1 = require("../config");
 const producer_1 = require("../../common/rabbitmq/producer");
+const sequelize_1 = require("sequelize");
 class AdminController {
 }
 exports.AdminController = AdminController;
 _a = AdminController;
 AdminController.type = "admin";
 AdminController.initializeGoogleAuth = async (_, res) => {
-    const consent_screen = (0, utils_1.buildUrl)(config_1.googlePatient);
+    const consent_screen = (0, utils_1.buildUrl)(config_1.googleAdmin);
     res.redirect(consent_screen);
 };
-AdminController.getPatientToken = async (req, res) => {
+AdminController.getAdminToken = async (req, res) => {
     console.log(req.query);
     const { code } = req.query;
     if (!process.env.GOOGLE_CLIENT_ID ||
@@ -60,14 +61,15 @@ AdminController.getPatientToken = async (req, res) => {
         const { email, given_name, family_name } = await token_info_response.json();
         const [newUser, created] = await core_1.Admin.findOrCreate({
             where: { email },
-            defaults: { email,
+            defaults: {
+                email,
                 firstname: given_name,
                 lastname: family_name,
                 password: null,
                 refresh_token: null,
                 createdAt: new Date(),
                 updatedAt: new Date(),
-            }
+            },
         });
         const accessToken = core_1.AccessToken.sign(newUser.id);
         const refreshToken = core_1.RefreshToken.sign(newUser.id);
@@ -245,7 +247,7 @@ AdminController.getAdminById = core_1.CatchAsync.wrap(async (req, res, next) => 
 });
 AdminController.getAllAdmins = core_1.CatchAsync.wrap(async (req, res, next) => {
     const allAdmins = await core_1.Admin.findAll({
-        attributes: { exclude: ["password"] }
+        attributes: { exclude: ["password"] },
     });
     if (!allAdmins) {
         return next(new core_1.AppError("No Admin seen", 404));
@@ -287,5 +289,61 @@ AdminController.resetPassword = core_1.CatchAsync.wrap(async (req, res, next) =>
     const hashedPassword = await bcrypt.hash(password, 10);
     const resetUserPassword = await core_1.Admin.update({ password: hashedPassword }, { where: { id: decoded.userId } });
     return response_utils_1.default.success(res, "Password Reset successful", Object.assign({}, resetUserPassword));
+});
+AdminController.getAllPatients = core_1.CatchAsync.wrap(async (req, res, next) => {
+    const allPatients = await core_1.Patient.findAll({
+        attributes: { exclude: ["password"] },
+    });
+    if (!allPatients) {
+        return next(new core_1.AppError("No Patient seen", 404));
+    }
+    return response_utils_1.default.success(res, "All Patients", [...allPatients]);
+});
+AdminController.getAllPractitioners = core_1.CatchAsync.wrap(async (req, res, next) => {
+    const allPractitioners = await core_1.HealthPractitioner.findAll({
+        attributes: { exclude: ["password"] },
+    });
+    if (!allPractitioners) {
+        return next(new core_1.AppError("No Practitioner seen", 404));
+    }
+    return response_utils_1.default.success(res, "All Health Practitioners", {
+        allPractitioners,
+    });
+});
+AdminController.searchPatientByEmailOrName = core_1.CatchAsync.wrap(async (req, res) => {
+    const { name, email } = req.query;
+    if (!name || !email) {
+        throw new core_1.AppError(`Input your name or email`, 400);
+    }
+    ;
+    const patient = await core_1.Patient.findAll({ where: {
+            [sequelize_1.Op.or]: [
+                email ? { email: { [sequelize_1.Op.iLike]: `%${email}%` } } : undefined,
+                name ? { name: { [sequelize_1.Op.iLike]: `%${name}%` } } : undefined
+            ].filter(Boolean),
+        } });
+    if (!patient) {
+        return response_utils_1.default.success(res, "Patient Not Found");
+    }
+    ;
+    return response_utils_1.default.success(res, "Patient(s) found are..", [...patient]);
+});
+AdminController.searchPractitionerByEmailOrName = core_1.CatchAsync.wrap(async (req, res) => {
+    const { name, email } = req.query;
+    if (!name || !email) {
+        throw new core_1.AppError(`Input your name or email`, 400);
+    }
+    ;
+    const hp = await core_1.HealthPractitioner.findAll({ where: {
+            [sequelize_1.Op.or]: [
+                email ? { email: { [sequelize_1.Op.iLike]: `%${email}%` } } : undefined,
+                name ? { name: { [sequelize_1.Op.iLike]: `%${name}%` } } : undefined
+            ].filter(Boolean),
+        } });
+    if (!hp) {
+        return response_utils_1.default.success(res, "Practitioner Not Found");
+    }
+    ;
+    return response_utils_1.default.success(res, "Practitioner(s) found are..", [...hp]);
 });
 //# sourceMappingURL=admin.controller.js.map

@@ -19,7 +19,8 @@ RequestSession.init({
         defaultValue: "pending",
     },
     patient_symptoms: sequelize_1.DataTypes.TEXT,
-    time: sequelize_1.DataTypes.DATE,
+    start_time: sequelize_1.DataTypes.DATE,
+    end_time: sequelize_1.DataTypes.DATE,
     ongoing_medication: sequelize_1.DataTypes.TEXT,
 }, {
     sequelize: db_1.default,

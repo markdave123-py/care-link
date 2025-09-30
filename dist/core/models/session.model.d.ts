@@ -12,5 +12,6 @@ export declare class Session extends Model<InferAttributes<Session>, InferCreati
     diagnosis: string;
     prescription: string;
     rating: number;
-    time: CreationOptional<Date>;
+    start_time: CreationOptional<Date>;
+    end_time: CreationOptional<Date>;
 }

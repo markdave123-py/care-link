@@ -8,7 +8,7 @@ class HpSchedule {
 }
 exports.HpSchedule = HpSchedule;
 _a = HpSchedule;
-HpSchedule.getSchedule = core_1.CatchAsync.wrap(async (req, res, next) => {
+HpSchedule.getSchedule = core_1.CatchAsync.wrap(async (req, res) => {
     const { hp_id } = req.params;
     const workingHours = await core_1.WorkingHour.findAll({
         where: { hp_id: hp_id },

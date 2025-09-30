@@ -8,7 +8,6 @@ declare class HpController {
     static refreshAccessToken: (req: Request, res: Response, next: NextFunction) => void;
     static verifiedHealthPractitioner: (req: Request, res: Response, next: NextFunction) => void;
     static getPractitionerById: (req: Request, res: Response, next: NextFunction) => void;
-    static getAllPractitioners: (req: Request, res: Response, next: NextFunction) => void;
     static deletePractitioner: (req: Request, res: Response, next: NextFunction) => void;
     static forgotPassword: (req: Request, res: Response, next: NextFunction) => void;
     static resetPassword: (req: Request, res: Response, next: NextFunction) => void;

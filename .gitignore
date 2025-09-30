@@ -26,3 +26,4 @@ terraform-provider-aws_v5.100
 /.dist
 dist
 
+.env.prod

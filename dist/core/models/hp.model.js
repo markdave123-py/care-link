@@ -28,7 +28,7 @@ HealthPractitioner.init({
     passport: sequelize_1.DataTypes.TEXT,
     nin: sequelize_1.DataTypes.STRING,
     bvn: sequelize_1.DataTypes.STRING,
-    available_time: sequelize_1.DataTypes.ARRAY(sequelize_1.DataTypes.DATE),
+    timezone: { type: sequelize_1.DataTypes.STRING, allowNull: true, defaultValue: 'Africa/Lagos' },
     idcard: sequelize_1.DataTypes.TEXT,
     work_identification_number: { type: sequelize_1.DataTypes.STRING, unique: true },
     company_name: sequelize_1.DataTypes.TEXT,

@@ -7,5 +7,6 @@ export declare class RequestSession extends Model<InferAttributes<RequestSession
     status: CreationOptional<string>;
     patient_symptoms: string;
     ongoing_medication: string;
-    time: Date;
+    start_time: CreationOptional<Date>;
+    end_time: CreationOptional<Date>;
 }

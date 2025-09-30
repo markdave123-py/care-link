@@ -6,6 +6,7 @@ import {
 	RefreshToken,
 	CatchAsync,
 	EmailVerificationToken,
+	HPType,
 } from "../../core";
 import Send from "../utils/response.utils";
 import { config } from "dotenv";
@@ -200,6 +201,12 @@ class HpController {
 			if (existingHp) {
 				return next(new AppError("Email already in use", 400));
 			}
+
+			const hptype = await HPType.findOne({
+				where: {id: hp_type_id}
+			})
+
+			if (!hptype) return next(new AppError("Invalid health practitioner type", 404))
 
 			const docUrls = await processFiles(req.files, {
 				profile_picture: "profile_picture",

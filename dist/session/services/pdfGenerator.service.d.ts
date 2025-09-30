@@ -5,5 +5,6 @@ export declare function generateSessionPdf(session: {
     diagnosis: string;
     prescription: string;
     status: string;
-    time: Date;
+    start_time: Date;
+    end_time: Date;
 }): Promise<Buffer>;

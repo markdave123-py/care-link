@@ -36,7 +36,7 @@ class AuthController {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
-				sameSite: "strict",
+				sameSite: "none",
 			});
 
 			return Send.success(res, "Access Token refreshed successfully", null, );

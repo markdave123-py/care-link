@@ -93,14 +93,14 @@ class PatientController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
+				secure: true,
 				sameSite: "none",
 				maxAge: 15 * 60 * 1000, // 15 minutes
 			});
 
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
+				secure: true,
 				sameSite: "none",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 			});
@@ -146,13 +146,13 @@ class PatientController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
+				secure: true,
 				maxAge: 15 * 60 * 1000,
 				sameSite: "none",
 			});
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
+				secure: true,
 				maxAge: 24 * 60 * 60 * 1000,
 				sameSite: "none",
 			});
@@ -197,14 +197,14 @@ class PatientController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
+				secure: true,
 				sameSite: "none",
 				maxAge: 15 * 60 * 1000, // 15 minutes
 			});
 
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
+				secure: true,
 				sameSite: "none",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 			});
@@ -248,7 +248,7 @@ class PatientController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
+				secure: true,
 				maxAge: 15 * 60 * 1000,
 				sameSite: "none",
 			});

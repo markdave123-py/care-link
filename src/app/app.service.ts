@@ -12,15 +12,17 @@ import {ErrorMiddleware} from "../core";
 import AdminRouter from "../auth/routes/admin.routes";
 import { SmartRouter } from "../smart-sys/routes";
 import { ScheduleRouter } from "src/scheduling-sys";
+import { corsOptions } from "src/auth";
+
 export const app = express();
+
+app.set("trust proxy", 1);
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
-app.use(cors({
-  origin: ['*'], //Allow all origin
-  credentials: true //Allow using cookies
-}))
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));  
 
 app.use("/api/v1", appRouter);
 app.use("/api/v1/auth/admin", AdminRouter);

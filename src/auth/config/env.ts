@@ -32,7 +32,10 @@ export const env = {
     AWS_ACCESS_KEY_ID: requireEnv('AWS_ACCESS_KEY_ID'),
     AWS_SECRET_ACCESS_KEY: requireEnv('AWS_SECRET_ACCESS_KEY'),
     RABBITMQ_URL: requireEnv('RABBITMQ_URL'),
-    SLOT_LENGTH_MINUTES: requireEnv('SLOT_LENGTH_MINUTES')
+    SLOT_LENGTH_MINUTES: requireEnv('SLOT_LENGTH_MINUTES'),
+    CORS_OPTIONS: requireEnv('CORS_OPTIONS'),
+    API_BASE_URL: requireEnv('API_BASE_URL'),
+
 } as const;
 
 export function getSlotLen(): number{

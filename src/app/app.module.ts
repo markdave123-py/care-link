@@ -9,6 +9,8 @@ import { EmailVerification } from "../common/rabbitmq/consumers/emailverificatio
 import { ForgotPasswordConsumer } from "../common/rabbitmq/consumers/forgotpassword.consumer";
 import { InviteAdminConsumer } from "../common/rabbitmq/consumers/inviteAdmin.consumer";
 import { ensureConstraints } from "src/core/config/db.ensureconstraints";
+import { env } from "src/auth";
+import { Mailer } from "src/core";
 
 export const startApp = async () => {
   console.log("i am here")
@@ -31,6 +33,7 @@ export const startApp = async () => {
     // await EmailVerification.consume();
     // await ForgotPasswordConsumer.consume();
     // await InviteAdminConsumer.consume();
+    await new Mailer().verify()
     await Rabbitmq.safeStartConsumers();
   } catch (err) {
     console.error("RabbitMQ is not available, continuing without it. Will retry...", err);
@@ -38,6 +41,6 @@ export const startApp = async () => {
   }
 
   const server = createServer(app);
-  const port = parseInt(process.env.PORT!) || 3000;
-  server.listen(port, "0.0.0.0", () => console.log("Server is running on port 3000"));
+  const port = parseInt(env.PORT!) || 3000;
+  server.listen(port, () => console.log("Server is running on port 3000"));
 };

@@ -14,12 +14,24 @@ export class Mailer {
     this.transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: Number(process.env.EMAIL_PORT),
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
     });
   }
+
+  async verify(): Promise<void> {
+    try {
+      await this.transporter.verify();
+      console.log(`[mailer] SMTP verified for ${process.env.EMAIL_USER}`);
+    } catch (e) {
+      console.error("[mailer] SMTP verify failed:", e);
+      throw e;
+    }
+  }
+
 
   async sendMail({ to, subject, html }: MailOptions): Promise<void> {
     try {

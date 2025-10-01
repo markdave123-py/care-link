@@ -34,9 +34,9 @@ class AuthController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: true,
+				secure: process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
-				sameSite: "none",
+				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 			});
 
 			return Send.success(res, "Access Token refreshed successfully", null, );

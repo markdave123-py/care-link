@@ -1,5 +1,6 @@
 import { Mailer } from "../../core";
 import { config } from "dotenv";
+import { env } from "../config";
 
 config({ path: `.env.${process.env.NODE_ENV || 'development'}.local` });
 
@@ -11,7 +12,7 @@ export class ForgotPasswordService {
     };
 
     private buildPasswordResetLink(token: string, type: string): string {
-        return `http://localhost:3000/api/v1/auth/${type}/reset-password?token=${token}`;
+        return `${env.API_BASE_URL}/api/v1/auth/${type}/reset-password?token=${token}`;
     };
 
     private buildHtmlTemplate(link: string): string {

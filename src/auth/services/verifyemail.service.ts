@@ -1,5 +1,5 @@
 import { Mailer } from "../../core";
-
+import { env } from "../config";
 export class VerifyMailerService {
 	private mailer: Mailer;
 
@@ -8,7 +8,7 @@ export class VerifyMailerService {
 	};
 
 	private buildVerificationLink(token: string, type: string): string {
-		return `http://localhost:3000/api/v1/auth/${type}/verify-user?token=${token}`;
+		return `${env.API_BASE_URL}/api/v1/auth/${type}/verify-user?token=${token}`;
 	};
 
 	private buildHtmlTemplate(link: string): string {

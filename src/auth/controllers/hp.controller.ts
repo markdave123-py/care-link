@@ -108,15 +108,15 @@ class HpController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: true,
-				sameSite: "none",
+				secure: process.env.NODE_ENV === "production",
+				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 15 * 60 * 1000, // 15 minutes
 			});
 
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
-				secure: true,
-				sameSite: "none",
+				secure: process.env.NODE_ENV === "production",
+				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 			});
 
@@ -161,15 +161,15 @@ class HpController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: true,
+				secure: process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
-				sameSite: "none",
+				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 			});
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
-				secure: true,
+				secure: process.env.NODE_ENV === "production",
 				maxAge: 24 * 60 * 60 * 1000,
-				sameSite: "none",
+				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 			});
 
 			return Send.success(
@@ -239,15 +239,15 @@ class HpController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: true,
-				sameSite: "none",
+				secure: process.env.NODE_ENV === "production",
+				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 15 * 60 * 1000, // 15 minutes
 			});
 
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
-				secure: true,
-				sameSite: "none",
+				secure: process.env.NODE_ENV === "production",
+				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 			});
 
@@ -297,9 +297,9 @@ class HpController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: true,
+				secure: process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
-				sameSite: "none",
+				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 			});
 
 			return Send.success(res, "Access Token refreshed successfully");

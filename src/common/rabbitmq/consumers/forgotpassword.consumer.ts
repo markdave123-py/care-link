@@ -8,7 +8,7 @@ export class ForgotPasswordConsumer {
         const queue = "forgot-password";
 
         channel.assertExchange(exchange, 'topic', { durable: true });
-        channel.assertQueue(queue, { exclusive: true });
+        channel.assertQueue(queue, { durable: true, exclusive: false, autoDelete: false });
         channel.bindQueue(queue, exchange, "auth.admin.forgotpassword")
         channel.bindQueue(queue, exchange, "auth.hp.forgotpassword")
         channel.bindQueue(queue, exchange, "auth.patient.forgotpassword")
@@ -28,6 +28,6 @@ export class ForgotPasswordConsumer {
                     console.log("Failed to send email: ", err);
                 }
             }
-        })
+        }, {noAck: false})
     }
 }

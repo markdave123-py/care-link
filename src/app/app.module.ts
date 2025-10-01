@@ -26,14 +26,15 @@ export const startApp = async () => {
 
   // Initialize Rabbitmq
   try {
-    await Rabbitmq.connect();
+    // await Rabbitmq.connect();
   
-    await EmailVerification.consume();
-    await ForgotPasswordConsumer.consume();
-    await InviteAdminConsumer.consume();
+    // await EmailVerification.consume();
+    // await ForgotPasswordConsumer.consume();
+    // await InviteAdminConsumer.consume();
+    await Rabbitmq.safeStartConsumers();
   } catch (err) {
     console.error("RabbitMQ is not available, continuing without it. Will retry...", err);
-    Rabbitmq.retryRabbitMQ();
+    // Rabbitmq.();
   }
 
   const server = createServer(app);

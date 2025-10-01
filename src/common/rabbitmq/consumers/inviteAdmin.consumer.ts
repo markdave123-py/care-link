@@ -8,7 +8,7 @@ export class InviteAdminConsumer {
         const queue = "invite-admin";
 
         channel.assertExchange(exchange, 'topic', { durable: true });
-        channel.assertQueue(queue, { exclusive: true });
+        channel.assertQueue(queue, { durable: true, exclusive: false, autoDelete: false });
         channel.bindQueue(queue, exchange, "*.*.invite")
         channel.prefetch(1);
         console.log(`[*] Waiting for messages in ${queue}. To exit press CTRL+C`);
@@ -26,6 +26,6 @@ export class InviteAdminConsumer {
                     console.log("Failed to send email: ", err);
                 }
             }
-        })
+        }, {noAck: false})
     }
 }

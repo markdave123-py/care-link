@@ -1,5 +1,5 @@
-import type { Transporter } from "nodemailer";
-import * as nodemailer from "nodemailer";
+// src/core/utils/mailer.ts
+import * as sgMail from '@sendgrid/mail';
 
 interface MailOptions {
   to: string;
@@ -8,42 +8,54 @@ interface MailOptions {
 }
 
 export class Mailer {
-  private transporter: Transporter;
-
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: Number(process.env.EMAIL_PORT),
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-  }
+    const apiKey = process.env.SENDGRID_API_KEY;
+    const fromEmail = process.env.FROM_EMAIL;
 
-  async verify(): Promise<void> {
-    try {
-      await this.transporter.verify();
-      console.log(`[mailer] SMTP verified for ${process.env.EMAIL_USER}`);
-    } catch (e) {
-      console.error("[mailer] SMTP verify failed:", e);
-      throw e;
+    if (!apiKey) {
+      throw new Error("SENDGRID_API_KEY environment variable is not set");
     }
-  }
 
+    if (!fromEmail) {
+      throw new Error("FROM_EMAIL environment variable is not set");
+    }
+
+    console.log(`[mailer] Initializing SendGrid with API key: ${apiKey.substring(0, 10)}...`);
+    console.log(`[mailer] Using FROM email: ${fromEmail}`);
+
+    sgMail.setApiKey(apiKey);
+  }
 
   async sendMail({ to, subject, html }: MailOptions): Promise<void> {
     try {
-      await this.transporter.sendMail({
-        from: `"Healthcare Scheduler" <${process.env.EMAIL_USER}>`,
+      const fromEmail = process.env.FROM_EMAIL || 'noreply@yourdomain.com';
+
+      console.log(`[mailer] Sending email from ${fromEmail} to ${to}`);
+      console.log(`[mailer] Subject: ${subject}`);
+
+      await sgMail.send({
+        from: `"Healthcare Scheduler" <${fromEmail}>`,
         to,
         subject,
         html,
       });
-      console.log(`Email sent to ${to}`);
-    } catch (error) {
-      console.error("Failed to send email:", error);
+
+      console.log(`[mailer] Email sent successfully to ${to}`);
+    } catch (error: any) {
+      console.error("[mailer] Failed to send email:", error.message);
+      console.error("[mailer] Error code:", error.code);
+      console.error("[mailer] Error response:", error.response?.body);
+
+      // Provide specific debugging information
+      if (error.code === 403) {
+        console.error("[mailer] DEBUG: 403 Forbidden error. Possible causes:");
+        console.error("[mailer] 1. SendGrid API key is invalid or expired");
+        console.error("[mailer] 2. API key doesn't have mail sending permissions");
+        console.error("[mailer] 3. FROM_EMAIL address is not verified in SendGrid");
+        console.error("[mailer] 4. SendGrid account may be suspended");
+        console.error("[mailer] SOLUTION: Check your SendGrid account and verify the FROM_EMAIL address");
+      }
+
       throw new Error("Email sending failed");
     }
   }

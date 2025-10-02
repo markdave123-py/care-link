@@ -1,4 +1,5 @@
 import { Rabbitmq } from ".";
+import { env } from "../../auth";
 
 type Data = {
     email: string,
@@ -9,14 +10,26 @@ type Data = {
 export class PublishToQueue {
     static email = async (key: string, data: Data) => { // key --> <domain>.<model>.<action>
         try {
+            console.log(`[amqp-producer] Publishing message with key: ${key}`);
+            console.log(`[amqp-producer] Message data:`, JSON.stringify(data, null, 2));
+
             const channel = await Rabbitmq.getChannel();
             const exchange = "email_service";
-    
-            channel.assertExchange(exchange, 'topic', { durable: true }); // Using direct type of exchange
-            channel.publish(exchange, key, Buffer.from(JSON.stringify(data)), { persistent: true }); // Publishing to queue with binding_key user_type
-            console.log(`Sent message for email sending to queue`);
+
+            console.log(`[amqp-producer] Asserting exchange: ${exchange} (topic, durable: true)`);
+            channel.assertExchange(exchange, 'topic', { durable: true }); // Using topic exchange
+
+            console.log(`[amqp-producer] Publishing to exchange: ${exchange} with routing key: ${key}`);
+            const published = channel.publish(exchange, key, Buffer.from(JSON.stringify(data)), { persistent: true });
+
+            if (published) {
+                console.log(`[amqp-producer] Message published successfully to ${exchange} with key ${key}`);
+            } else {
+                console.error(`[amqp-producer] Failed to publish message - channel buffer full or connection issue`);
+            }
         } catch (err) {
-            console.error("Error creating channel: ", err);
+            console.error("[amqp-producer] Error publishing message:", err);
+            console.error("[amqp-producer] RABBITMQ_URL:", env.RABBITMQ_URL);
         }
     }
 }

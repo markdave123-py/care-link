@@ -3,7 +3,7 @@ services:
     image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER:     postgres
-      POSTGRES_PASSWORD: ${PG_PASSWORD} 
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB:       healthcare
     ports: ["5432:5432"]
     volumes:
@@ -23,8 +23,6 @@ services:
           path: package.json
     env_file: .env
     environment:
-      POSTGRES_URI: postgres://postgres:postgres@db:5432/healthcare
-      TRANSFORMERS_CACHE: ${TRANSFORMERS_CACHE}
       USE_ONNXRUNTIME_NODE: "0"
     dns:
       - 8.8.8.8
@@ -40,10 +38,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     env_file: .env
-    environment:
-      - RABBITMQ_URL=${RABBITMQ_URL}
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    # Using .env file for RabbitMQ configuration
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq/data
 

@@ -1,5 +1,5 @@
-import type { Transporter } from "nodemailer";
-import * as nodemailer from "nodemailer";
+// src/core/utils/mailer.ts
+import * as sgMail from '@sendgrid/mail';
 
 interface MailOptions {
   to: string;
@@ -8,23 +8,14 @@ interface MailOptions {
 }
 
 export class Mailer {
-  private transporter: Transporter;
-
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: Number(process.env.EMAIL_PORT),
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
   }
 
   async sendMail({ to, subject, html }: MailOptions): Promise<void> {
     try {
-      await this.transporter.sendMail({
-        from: `"Healthcare Scheduler" <${process.env.EMAIL_USER}>`,
+      await sgMail.send({
+        from: `"Healthcare Scheduler" <${process.env.FROM_EMAIL || 'noreply@yourdomain.com'}>`,
         to,
         subject,
         html,

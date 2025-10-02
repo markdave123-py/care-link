@@ -13,6 +13,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.842.0",
     "@aws-sdk/lib-storage": "^3.842.0",
+    "@sendgrid/mail": "^8.1.6",
     "@sequelize/postgres": "^7.0.0-alpha.46",
     "@types/amqplib": "^0.10.7",
     "@types/bcrypt": "^5.0.2",
@@ -33,7 +34,6 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
     "node-fetch": "^3.3.2",
-    "nodemailer": "^7.0.3",
     "onnxruntime-node": "^1.22.0-rev",
     "openai": "^5.8.2",
     "pdfkit": "^0.17.1",

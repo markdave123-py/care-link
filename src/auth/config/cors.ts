@@ -1,5 +1,5 @@
 import { env } from "./env";
-import * as cors from "cors";
+import type * as cors from "cors";
 
 
 const allowList = (env.CORS_OPTIONS ?? "")

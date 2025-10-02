@@ -9,8 +9,6 @@ import { Rabbitmq } from "../common/rabbitmq";
 // import { ForgotPasswordConsumer } from "../common/rabbitmq/consumers/forgotpassword.consumer";
 // import { InviteAdminConsumer } from "../common/rabbitmq/consumers/inviteAdmin.consumer";
 import { ensureConstraints } from "src/core/config/db.ensureconstraints";
-import { env } from "src/auth";
-import { Mailer } from "src/core";
 
 export const startApp = async () => {
   try {

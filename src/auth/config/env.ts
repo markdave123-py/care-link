@@ -35,7 +35,7 @@ export const env = {
     SLOT_LENGTH_MINUTES: requireEnv('SLOT_LENGTH_MINUTES'),
     CORS_OPTIONS: requireEnv('CORS_OPTIONS'),
     API_BASE_URL: requireEnv('API_BASE_URL'),
-
+    PORT: requireEnv('PORT')
 } as const;
 
 export function getSlotLen(): number{

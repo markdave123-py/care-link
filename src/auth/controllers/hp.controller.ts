@@ -111,7 +111,7 @@ class HpController {
 				secure: false, //process.env.NODE_ENV === "production",
 				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 15 * 60 * 1000, // 15 minutes
-				domain: "localhost",
+				domain: undefined,
 			});
 
 			res.cookie("refreshToken", refreshToken, {
@@ -119,7 +119,7 @@ class HpController {
 				secure: false, //process.env.NODE_ENV === "production",
 				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-				domain: "localhost",
+				domain: undefined,
 			});
 
 			return Send.success(
@@ -244,7 +244,7 @@ class HpController {
 				secure: false, //process.env.NODE_ENV === "production",
 				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 15 * 60 * 1000, // 15 minutes
-				domain: "localhost",
+				domain: undefined,
 			});
 
 			res.cookie("refreshToken", refreshToken, {
@@ -252,7 +252,7 @@ class HpController {
 				secure: false, //process.env.NODE_ENV === "production",
 				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-				domain: "localhost",
+				domain: undefined,
 			});
 
 			const type = "hp";
@@ -304,6 +304,7 @@ class HpController {
 				secure: false, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
 				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
+				domain: undefined,
 			});
 
 			return Send.success(res, "Access Token refreshed successfully");

@@ -109,7 +109,7 @@ class HpController {
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
 				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
+				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 15 * 60 * 1000, // 15 minutes
 				domain: undefined,
 			});
@@ -117,7 +117,7 @@ class HpController {
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
 				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
+				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 				domain: undefined,
 			});
@@ -165,13 +165,13 @@ class HpController {
 				httpOnly: true,
 				secure: false, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
-				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
+				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 			});
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
 				secure: false, //process.env.NODE_ENV === "production",
 				maxAge: 24 * 60 * 60 * 1000,
-				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
+				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 			});
 
 			return Send.success(
@@ -242,7 +242,7 @@ class HpController {
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
 				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
+				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 15 * 60 * 1000, // 15 minutes
 				domain: undefined,
 			});
@@ -250,7 +250,7 @@ class HpController {
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
 				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
+				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 				domain: undefined,
 			});
@@ -303,7 +303,7 @@ class HpController {
 				httpOnly: true,
 				secure: false, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
-				sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
+				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 				domain: undefined,
 			});
 

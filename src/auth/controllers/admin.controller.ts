@@ -101,16 +101,16 @@ export class AdminController {
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: false, //process.env.NODE_ENV === "production",
-        sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
+        secure: true, //process.env.NODE_ENV === "production",
+        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
         maxAge: 15 * 60 * 1000, // 15 minutes
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: false, //process.env.NODE_ENV === "production",
-        sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
+        secure: true, //process.env.NODE_ENV === "production",
+        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
@@ -157,16 +157,16 @@ export class AdminController {
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: false, //process.env.NODE_ENV === "production",
-        sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
+        secure: true, //process.env.NODE_ENV === "production",
+        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
         maxAge: 15 * 60 * 1000, // 15 minutes
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: false, //process.env.NODE_ENV === "production",
-        sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
+        secure: true, //process.env.NODE_ENV === "production",
+        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
@@ -208,14 +208,14 @@ export class AdminController {
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: false, //process.env.NODE_ENV === "production",
+        secure: true, //process.env.NODE_ENV === "production",
         maxAge: 15 * 60 * 1000, // 15min
-        sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
+        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
       });
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: false, //process.env.NODE_ENV === "production",
+        secure: true, //process.env.NODE_ENV === "production",
         maxAge: 7 * 24 * 60 * 60 * 1000, //process.env.NODE_ENV === "production"?  7 days
         sameSite: "none",
         domain: undefined,
@@ -272,9 +272,9 @@ export class AdminController {
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: false, //process.env.NODE_ENV === "production",
+        secure: true, //process.env.NODE_ENV === "production",
         maxAge: 15 * 60 * 1000,
-        sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
+        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
       });
 

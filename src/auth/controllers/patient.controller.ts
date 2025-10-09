@@ -93,18 +93,18 @@ class PatientController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				domain: undefined,
+				secure: true, //process.env.NODE_ENV === "production",
+				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
+				// domain: undefined,
 				maxAge: 15 * 60 * 1000, // 15 minutes
 			});
 
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
-				secure: false, //process.env.NODE_ENV === "production",
+				secure: true, //process.env.NODE_ENV === "production",
 				sameSite: "none",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-				domain: undefined,
+				// domain: undefined,
 			});
 
 			return Send.success(
@@ -148,17 +148,17 @@ class PatientController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: false, //process.env.NODE_ENV === "production",
+				secure: true, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				domain: undefined,
+				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
+				// domain: undefined,
 			});
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
-				secure: false, //process.env.NODE_ENV === "production",
+				secure: true, //process.env.NODE_ENV === "production",
 				maxAge: 24 * 60 * 60 * 1000,
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				domain: undefined,
+				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
+				// domain: undefined,
 			});
 
 			return Send.success(
@@ -201,17 +201,17 @@ class PatientController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				domain: undefined,
+				secure: true, //process.env.NODE_ENV === "production",
+				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
+				// domain: undefined,
 				maxAge: 15 * 60 * 1000, // 15 minutes
 			});
 
 			res.cookie("refreshToken", refreshToken, {
 				httpOnly: true,
-				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				domain: undefined,
+				secure: true, //process.env.NODE_ENV === "production",
+				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
+				// domain: undefined,
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 			});
 
@@ -254,10 +254,10 @@ class PatientController {
 
 			res.cookie("accessToken", accessToken, {
 				httpOnly: true,
-				secure: false, //process.env.NODE_ENV === "production",
+				secure: true, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				domain: undefined,
+				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
+				// domain: undefined,
 			});
 
 			return Send.success(

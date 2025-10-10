@@ -99,26 +99,14 @@ export class AdminController {
       newUser.refresh_token = refreshToken;
       await newUser.save();
 
-      res.cookie("accessToken", accessToken, {
-        httpOnly: false,
-        secure: true, //process.env.NODE_ENV === "production",
-        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-        domain: undefined,
-        maxAge: 15 * 60 * 1000, // 15 minutes
-      });
-
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: false,
-        secure: true, //process.env.NODE_ENV === "production",
-        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-        domain: undefined,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-
       return Send.success(
         res,
         created ? "User created successfully" : "User already exists",
-        AdminMapper.adminResponse(newUser)
+        {
+          ...AdminMapper.adminResponse(newUser),
+          accessToken,
+          refreshToken
+        }
       );
     } catch (err) {
       console.error("OAuth callback error:", err);
@@ -155,26 +143,14 @@ export class AdminController {
       newAdmin.refresh_token = refreshToken;
       await newAdmin.save();
 
-      res.cookie("accessToken", accessToken, {
-        httpOnly: false,
-        secure: true, //process.env.NODE_ENV === "production",
-        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-        domain: undefined,
-        maxAge: 15 * 60 * 1000, // 15 minutes
-      });
-
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: false,
-        secure: true, //process.env.NODE_ENV === "production",
-        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-        domain: undefined,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-
       return Send.success(
         res,
         "Admin created successfully",
-        AdminMapper.adminResponse(newAdmin)
+        {
+          ...AdminMapper.adminResponse(newAdmin),
+          accessToken,
+          refreshToken
+        }
       );
     }
   );
@@ -206,25 +182,14 @@ export class AdminController {
         refresh_token: refreshToken,
       });
 
-      res.cookie("accessToken", accessToken, {
-        httpOnly: false,
-        secure: true, //process.env.NODE_ENV === "production",
-        maxAge: 15 * 60 * 1000, // 15min
-        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-        domain: undefined,
-      });
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: false,
-        secure: true, //process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000, //process.env.NODE_ENV === "production"?  7 days
-        sameSite: "none",
-        domain: undefined,
-      });
-
       return Send.success(
         res,
         "Login successfully",
-        AdminMapper.adminResponse(admin)
+        {
+          ...AdminMapper.adminResponse(admin),
+          accessToken,
+          refreshToken
+        }
       );
     }
   );
@@ -255,7 +220,7 @@ export class AdminController {
       }
 
       const userId = req.userId;
-      const refreshToken = req.cookies.refreshToken;
+      const refreshToken = req.headers['x-refresh-token'] as string;
 
       const user = await Admin.findOne({
         where: { id: userId },
@@ -270,30 +235,21 @@ export class AdminController {
 
       const accessToken = AccessToken.sign(userId);
 
-      res.cookie("accessToken", accessToken, {
-        httpOnly: false,
-        secure: true, //process.env.NODE_ENV === "production",
-        maxAge: 15 * 60 * 1000,
-        sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-        domain: undefined,
+      return Send.success(res, "Access Token refreshed successfully", {
+        accessToken
       });
-
-      return Send.success(res, "Access Token refreshed successfully");
     }
   );
 
   static logout = CatchAsync.wrap(
     async (req: AuthenticateRequest, res: Response) => {
-      const patientId = req.userId;
-      if (patientId) {
+      const adminId = req.userId;
+      if (adminId) {
         await Admin.update(
           { refresh_token: null },
-          { where: { id: patientId } }
+          { where: { id: adminId } }
         );
       }
-
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
 
       return Send.success(res, "Logged out successfully");
     }

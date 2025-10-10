@@ -91,27 +91,15 @@ class PatientController {
 			newUser.refresh_token = refreshToken;
 			await newUser.save();
 
-			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
-				secure: true, //process.env.NODE_ENV === "production",
-				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-				domain: "http://localhost:3000",
-				maxAge: 15 * 60 * 1000, // 15 minutes
-			});
-
-			res.cookie("refreshToken", refreshToken, {
-				httpOnly: true,
-				secure: true, //process.env.NODE_ENV === "production",
-				sameSite: "none",
-				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-				domain: "http://localhost:3000",
-			});
-
 			return Send.success(
-				res,
-				created ? "User created successfully" : "User already exists",
-				PatientMapper.patientResponse(newUser),
-			);
+					res,
+					created ? "User created successfully" : "User already exists",
+					{
+						...PatientMapper.patientResponse(newUser),
+						accessToken,
+						refreshToken
+					},
+				);
 		} catch (err) {
 			console.error("OAuth callback error:", err);
 			res.status(500).json({ error: "Internal server error" });
@@ -146,26 +134,15 @@ class PatientController {
 				refresh_token: refreshToken,
 			});
 
-			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
-				secure: true, //process.env.NODE_ENV === "production",
-				maxAge: 15 * 60 * 1000,
-				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-				domain: "http://localhost:3000",
-			});
-			res.cookie("refreshToken", refreshToken, {
-				httpOnly: true,
-				secure: true, //process.env.NODE_ENV === "production",
-				maxAge: 24 * 60 * 60 * 1000,
-				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-				domain: "http://localhost:3000",
-			});
-
 			return Send.success(
-				res,
-				"Logged in successfully",
-				PatientMapper.patientResponse(patient),
-			);
+					res,
+					"Logged in successfully",
+					{
+						...PatientMapper.patientResponse(patient),
+						accessToken,
+						refreshToken
+					},
+				);
 		}
 	);
 
@@ -199,33 +176,21 @@ class PatientController {
 			newPatient.refresh_token = refreshToken;
 			await newPatient.save();
 
-			res.cookie("accessToken", accessToken, {
-				httpOnly: false,
-				secure: true, //process.env.NODE_ENV === "production",
-				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-				// domain: undefined,
-				maxAge: 15 * 60 * 1000, // 15 minutes
-			});
-
-			res.cookie("refreshToken", refreshToken, {
-				httpOnly: false,
-				secure: true, //process.env.NODE_ENV === "production",
-				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-				// domain: undefined,
-				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-			});
-
 			const type = "patient";
-			const token = EmailVerificationToken.sign(newPatient.id);
-			const data = { token, email, type };
-			const key = "auth.patient.register"; // routing_key for rabbitmq
-			await PublishToQueue.email(key, data);
+				const token = EmailVerificationToken.sign(newPatient.id);
+				const data = { token, email, type };
+				const key = "auth.patient.register"; // routing_key for rabbitmq
+				await PublishToQueue.email(key, data);
 
-			return Send.success(
-				res,
-				"User created successfully",
-				PatientMapper.patientResponse(newPatient),
-			);
+				return Send.success(
+					res,
+					"User created successfully",
+					{
+						...PatientMapper.patientResponse(newPatient),
+						accessToken,
+						refreshToken
+					},
+				);
 		}
 	);
 
@@ -236,7 +201,7 @@ class PatientController {
 			}
 
 			const userId = req.userId;
-			const refreshToken = req.cookies.refreshToken;
+				const refreshToken = req.headers['x-refresh-token'] as string;
 
 			const user = await Patient.findOne({
 				where: { id: userId },
@@ -252,19 +217,14 @@ class PatientController {
 
 			const accessToken = AccessToken.sign(userId);
 
-			res.cookie("accessToken", accessToken, {
-				httpOnly: false,
-				secure: true, //process.env.NODE_ENV === "production",
-				maxAge: 15 * 60 * 1000,
-				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-				// domain: undefined,
-			});
-
-			return Send.success(
-				res, 
-				"Access Token refreshed successfully",
-				{...user},
-			);
+				return Send.success(
+					res,
+					"Access Token refreshed successfully",
+					{
+						...user,
+						accessToken
+					},
+				);
 		}
 	);
 

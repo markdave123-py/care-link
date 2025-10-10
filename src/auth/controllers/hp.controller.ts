@@ -106,27 +106,15 @@ class HpController {
 			newUser.refresh_token = refreshToken;
 			await newUser.save();
 
-			res.cookie("accessToken", accessToken, {
-				httpOnly: false,
-				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				maxAge: 15 * 60 * 1000, // 15 minutes
-				domain: undefined,
-			});
-
-			res.cookie("refreshToken", refreshToken, {
-				httpOnly: false,
-				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-				domain: undefined,
-			});
-
 			return Send.success(
-				res,
-				created ? "User created successfully" : "User already exists",
-				HpMapper.hpResponse(newUser)
-			);
+					res,
+					created ? "User created successfully" : "User already exists",
+					{
+						...HpMapper.hpResponse(newUser),
+						accessToken,
+						refreshToken
+					}
+				);
 		} catch (err) {
 			console.error("OAuth callback error:", err);
 			res.status(500).json({ error: "Internal server error" });
@@ -161,24 +149,15 @@ class HpController {
 				refresh_token: refreshToken,
 			});
 
-			res.cookie("accessToken", accessToken, {
-				httpOnly: false,
-				secure: false, //process.env.NODE_ENV === "production",
-				maxAge: 15 * 60 * 1000,
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-			});
-			res.cookie("refreshToken", refreshToken, {
-				httpOnly: false,
-				secure: false, //process.env.NODE_ENV === "production",
-				maxAge: 24 * 60 * 60 * 1000,
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-			});
-
 			return Send.success(
-				res,
-				"User Logged in successfully",
-				HpMapper.hpResponse(hp)
-			);
+					res,
+					"User Logged in successfully",
+					{
+						...HpMapper.hpResponse(hp),
+						accessToken,
+						refreshToken
+					}
+				);
 		}
 	);
 
@@ -239,41 +218,26 @@ class HpController {
 			newUser.refresh_token = refreshToken;
 			await newUser.save();
 
-			res.cookie("accessToken", accessToken, {
-				httpOnly: false,
-				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				maxAge: 15 * 60 * 1000, // 15 minutes
-				domain: undefined,
-			});
-
-			res.cookie("refreshToken", refreshToken, {
-				httpOnly: false,
-				secure: false, //process.env.NODE_ENV === "production",
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-				domain: undefined,
-			});
-
 			const type = "hp";
-			const token = EmailVerificationToken.sign(newUser.id);
-			const data = { email, token, type };
-			const key = "auth.hp.register"; // routing_key for rabbitmq
-			await PublishToQueue.email(key, data);
+				const token = EmailVerificationToken.sign(newUser.id);
+				const data = { email, token, type };
+				const key = "auth.hp.register"; // routing_key for rabbitmq
+				await PublishToQueue.email(key, data);
 
-			return Send.success(res, "User created successfully", {
-				id: newUser.id,
-				firstname: newUser.firstname,
-				lastname: newUser.lastname,
-				email: newUser.email,
-				hp_type_id: newUser.hp_type_id,
-				refreshToken: newUser.refresh_token,
-				passport: newUser.passport,
-				profile_picture: newUser.profile_picture,
-				idcard: newUser.idcard,
-				createdAt: newUser.createdAt,
-				updatedAt: newUser.updatedAt,
-			});
+				return Send.success(res, "User created successfully", {
+					id: newUser.id,
+					firstname: newUser.firstname,
+					lastname: newUser.lastname,
+					email: newUser.email,
+					hp_type_id: newUser.hp_type_id,
+					refreshToken: newUser.refresh_token,
+					passport: newUser.passport,
+					profile_picture: newUser.profile_picture,
+					idcard: newUser.idcard,
+					createdAt: newUser.createdAt,
+					updatedAt: newUser.updatedAt,
+					accessToken,
+				});
 		}
 	);
 
@@ -284,7 +248,7 @@ class HpController {
 			}
 
 			const userId = req.userId;
-			const refreshToken = req.cookies.refreshToken;
+				const refreshToken = req.headers['x-refresh-token'] as string;
 
 			const user = await HealthPractitioner.findOne({
 				where: { id: userId },
@@ -299,15 +263,9 @@ class HpController {
 
 			const accessToken = AccessToken.sign(userId);
 
-			res.cookie("accessToken", accessToken, {
-				httpOnly: false,
-				secure: false, //process.env.NODE_ENV === "production",
-				maxAge: 15 * 60 * 1000,
-				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
-				domain: undefined,
-			});
-
-			return Send.success(res, "Access Token refreshed successfully");
+				return Send.success(res, "Access Token refreshed successfully", {
+					accessToken
+				});
 		}
 	);
 
@@ -422,21 +380,18 @@ class HpController {
 	);
 
 	static logout = CatchAsync.wrap(
-			async (req: AuthenticateRequest, res: Response) => {
-				const hpId = req.userId;
-				if (hpId) {
-					await HealthPractitioner.update(
-						{ refresh_token: null },
-						{ where: { id: hpId } }
-					);
+				async (req: AuthenticateRequest, res: Response) => {
+					const hpId = req.userId;
+					if (hpId) {
+						await HealthPractitioner.update(
+							{ refresh_token: null },
+							{ where: { id: hpId } }
+						);
+					}
+
+					return Send.success(res, "Logged out successfully");
 				}
-	
-				res.clearCookie("accessToken");
-				res.clearCookie("refreshToken");
-	
-				return Send.success(res, "Logged out successfully", null, );
-			}
-		);
+			);
 }
 
 export default HpController;

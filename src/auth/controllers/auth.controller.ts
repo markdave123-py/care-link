@@ -33,7 +33,7 @@ class AuthController {
 			const accessToken = AccessToken.sign(userId);
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: true, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
 				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",

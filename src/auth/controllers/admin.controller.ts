@@ -100,7 +100,7 @@ export class AdminController {
       await newUser.save();
 
       res.cookie("accessToken", accessToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: true, //process.env.NODE_ENV === "production",
         sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
@@ -108,7 +108,7 @@ export class AdminController {
       });
 
       res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: true, //process.env.NODE_ENV === "production",
         sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
@@ -156,7 +156,7 @@ export class AdminController {
       await newAdmin.save();
 
       res.cookie("accessToken", accessToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: true, //process.env.NODE_ENV === "production",
         sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
@@ -164,7 +164,7 @@ export class AdminController {
       });
 
       res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: true, //process.env.NODE_ENV === "production",
         sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
@@ -207,14 +207,14 @@ export class AdminController {
       });
 
       res.cookie("accessToken", accessToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: true, //process.env.NODE_ENV === "production",
         maxAge: 15 * 60 * 1000, // 15min
         sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
         domain: undefined,
       });
       res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: true, //process.env.NODE_ENV === "production",
         maxAge: 7 * 24 * 60 * 60 * 1000, //process.env.NODE_ENV === "production"?  7 days
         sameSite: "none",
@@ -271,7 +271,7 @@ export class AdminController {
       const accessToken = AccessToken.sign(userId);
 
       res.cookie("accessToken", accessToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: true, //process.env.NODE_ENV === "production",
         maxAge: 15 * 60 * 1000,
         sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",

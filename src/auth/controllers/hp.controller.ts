@@ -107,7 +107,7 @@ class HpController {
 			await newUser.save();
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: false, //process.env.NODE_ENV === "production",
 				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 15 * 60 * 1000, // 15 minutes
@@ -115,7 +115,7 @@ class HpController {
 			});
 
 			res.cookie("refreshToken", refreshToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: false, //process.env.NODE_ENV === "production",
 				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -162,13 +162,13 @@ class HpController {
 			});
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: false, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
 				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 			});
 			res.cookie("refreshToken", refreshToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: false, //process.env.NODE_ENV === "production",
 				maxAge: 24 * 60 * 60 * 1000,
 				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
@@ -240,7 +240,7 @@ class HpController {
 			await newUser.save();
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: false, //process.env.NODE_ENV === "production",
 				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 15 * 60 * 1000, // 15 minutes
@@ -248,7 +248,7 @@ class HpController {
 			});
 
 			res.cookie("refreshToken", refreshToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: false, //process.env.NODE_ENV === "production",
 				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -300,7 +300,7 @@ class HpController {
 			const accessToken = AccessToken.sign(userId);
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: false, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
 				sameSite: "lax", //process.env.NODE_ENV === "production"? "none" : "lax",

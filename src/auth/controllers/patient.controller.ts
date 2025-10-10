@@ -92,7 +92,7 @@ class PatientController {
 			await newUser.save();
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: true, //process.env.NODE_ENV === "production",
 				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
 				// domain: undefined,
@@ -100,7 +100,7 @@ class PatientController {
 			});
 
 			res.cookie("refreshToken", refreshToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: true, //process.env.NODE_ENV === "production",
 				sameSite: "none",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -147,14 +147,14 @@ class PatientController {
 			});
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: true, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
 				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
 				// domain: undefined,
 			});
 			res.cookie("refreshToken", refreshToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: true, //process.env.NODE_ENV === "production",
 				maxAge: 24 * 60 * 60 * 1000,
 				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
@@ -200,7 +200,7 @@ class PatientController {
 			await newPatient.save();
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: true, //process.env.NODE_ENV === "production",
 				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
 				// domain: undefined,
@@ -208,7 +208,7 @@ class PatientController {
 			});
 
 			res.cookie("refreshToken", refreshToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: true, //process.env.NODE_ENV === "production",
 				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
 				// domain: undefined,
@@ -253,7 +253,7 @@ class PatientController {
 			const accessToken = AccessToken.sign(userId);
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
+				httpOnly: false,
 				secure: true, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
 				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",

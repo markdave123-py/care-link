@@ -92,19 +92,19 @@ class PatientController {
 			await newUser.save();
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: false,
+				httpOnly: true,
 				secure: true, //process.env.NODE_ENV === "production",
 				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-				// domain: undefined,
+				domain: "http://localhost:3000",
 				maxAge: 15 * 60 * 1000, // 15 minutes
 			});
 
 			res.cookie("refreshToken", refreshToken, {
-				httpOnly: false,
+				httpOnly: true,
 				secure: true, //process.env.NODE_ENV === "production",
 				sameSite: "none",
 				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-				// domain: undefined,
+				domain: "http://localhost:3000",
 			});
 
 			return Send.success(
@@ -147,18 +147,18 @@ class PatientController {
 			});
 
 			res.cookie("accessToken", accessToken, {
-				httpOnly: false,
+				httpOnly: true,
 				secure: true, //process.env.NODE_ENV === "production",
 				maxAge: 15 * 60 * 1000,
 				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-				// domain: undefined,
+				domain: "http://localhost:3000",
 			});
 			res.cookie("refreshToken", refreshToken, {
-				httpOnly: false,
+				httpOnly: true,
 				secure: true, //process.env.NODE_ENV === "production",
 				maxAge: 24 * 60 * 60 * 1000,
 				sameSite: "none", //process.env.NODE_ENV === "production"? "none" : "lax",
-				// domain: undefined,
+				domain: "http://localhost:3000",
 			});
 
 			return Send.success(

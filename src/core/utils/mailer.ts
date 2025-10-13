@@ -1,5 +1,6 @@
 // src/core/utils/mailer.ts
 import * as sgMail from '@sendgrid/mail';
+// import { env } from 'src/auth';
 
 interface MailOptions {
   to: string;

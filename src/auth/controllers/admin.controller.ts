@@ -313,6 +313,42 @@ export class AdminController {
     }
   );
 
+  static getPatientById = CatchAsync.wrap(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const userId = req.params.id;
+      const patient = await Patient.findOne({
+        where: { id: userId },
+        attributes: { exclude: ["password"] },
+      });
+      if (!patient) {
+        return next(new AppError(`Patient with Id: ${userId} not found`, 404));
+      }
+      return Send.success(
+        res,
+        `Patient with ID: ${userId}`,
+        {...patient},
+      );
+    }
+  );
+
+  static getPractitionerById = CatchAsync.wrap(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const userId = req.params.id;
+      const hp = await HealthPractitioner.findOne({
+        where: { id: userId },
+        attributes: { exclude: ["password"] },
+      });
+      if (!hp) {
+        return next(new AppError(`Health Practitioner with Id: ${userId} not found`, 404));
+      }
+      return Send.success(
+        res,
+        `Health Practitioner with ID: ${userId}`,
+        {...hp},
+      );
+    }
+  );
+
   static getAllAdmins = CatchAsync.wrap(
     async (req: Request, res: Response, next: NextFunction) => {
       const allAdmins = await Admin.findAll({

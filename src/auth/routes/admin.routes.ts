@@ -14,16 +14,19 @@ AdminRouter.post('/refresh-access-token', AuthMiddleware.authenticateUser, Admin
 AdminRouter.post('/request-admin', AuthMiddleware.authenticateAdmin, AdminController.requestAdmin);
 AdminRouter.post('/invite-admin', AdminController.inviteAdmin);
 AdminRouter.post('/logout', AdminController.logout);
+AdminRouter.post('/forgot-password', AdminController.forgotPassword);
+AdminRouter.post('/reset-password', AdminController.resetPassword);
+AdminRouter.post('/all-patients', AdminController.getAllPatients);
+AdminRouter.post('/all-hp', AdminController.getAllPractitioners);
+AdminRouter.post('/patients/search', AdminController.searchPatientByEmailOrName);
+AdminRouter.post('/hp/search', AdminController.searchPractitionerByEmailOrName);
 AdminRouter.get('/:id', AdminController.getAdminById);
 AdminRouter.delete('/:id', AdminController.deleteAdmin);
 AdminRouter.get('/', AdminController.getAllAdmins);
-AdminRouter.post('/forgot-password', AdminController.forgotPassword);
-AdminRouter.post('/reset-password', AdminController.resetPassword);
 
-AdminRouter.post('/all-patients', AdminController.getAllPatients);
-AdminRouter.post('/all-hp', AdminController.getAllAdmins);
 
-AdminRouter.post('/patients/search', AdminController.searchPatientByEmailOrName);
-AdminRouter.post('/hp/search', AdminController.searchPractitionerByEmailOrName);
+AdminRouter.get('/:id', AdminController.getPatientById);
+AdminRouter.get('/:id', AdminController.getPractitionerById);
+
 
 export default AdminRouter;

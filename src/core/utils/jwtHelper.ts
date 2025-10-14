@@ -11,7 +11,7 @@ export class AccessToken {
         return jwt.sign(
             { userId },
             process.env.JWT_SECRET,
-            { expiresIn: "15m" }
+            { expiresIn: "45m" }
         )
     }
 

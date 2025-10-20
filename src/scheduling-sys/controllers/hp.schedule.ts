@@ -3,6 +3,7 @@ import type { Response, NextFunction } from "express";
 import type { AuthenticateRequest } from "src/auth/middlewares";
 import { normaliseSchedule } from "../validators/schedule.validator";
 import type { WorkingHourDTO } from "../types";
+import { getHpAvailabilityService } from "../services/availability.service";
 
 
 export class HpSchedule{
@@ -62,4 +63,34 @@ export class HpSchedule{
             schedule
         );
     });
+
+    /**
+      * GET /hp/:hp_id/availability?from=YYYY-MM-DD&to=YYYY-MM-DD&days=14&includePast=false
+      * Returns discrete availability slots (30 minutes by default) in HP's local tz.
+    */
+    static getAvailability = async (req: AuthenticateRequest, res: Response) => {
+        const { hp_id } = req.params;
+        const { from, to, days, includePast } = req.query as {
+        from?: string;
+        to?: string;
+        days?: string;
+        includePast?: string;
+        };
+
+        // call your already-implemented service
+        const data = await getHpAvailabilityService({
+        hpId: hp_id,
+        from,
+        to,
+        days: days ? Number(days) : undefined,
+        includePast: includePast === "true",
+        });
+
+        return responseHandler.success(
+        res,
+        HttpStatus.OK,
+        "Availability generated",
+        data
+        );
+    };
 }

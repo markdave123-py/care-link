@@ -1,5 +1,6 @@
 import type { Response, NextFunction } from "express";
-import { RequestSession, Patient, HealthPractitioner, Session, AppError, CatchAsync, responseHandler, HttpStatus, createJitsiMeeting} from "../../core";
+import { Op } from "sequelize";
+import { RequestSession, Patient, HealthPractitioner, AppointmentSlot, Session, AppError, CatchAsync, responseHandler, HttpStatus, createJitsiMeeting, sequelize} from "../../core";
 import type { AuthenticateRequest } from "../../auth/middlewares";
 import { MailerService } from "../services";
 const mailerService = new MailerService();
@@ -8,6 +9,7 @@ const mailerService = new MailerService();
 export class HpSession{
 
 //This endpoint is responsible for declining session request (protect this route with hp role checking middleware)
+// It wraps updating the request session, and updating the appointment slot in a db transaction
     public static declineRequest = CatchAsync.wrap(async (req:AuthenticateRequest, res: Response, next: NextFunction) => {
         const hp_id = req.userId;
         const { request_session_id } = req.params
@@ -20,19 +22,64 @@ export class HpSession{
         if (request_session.health_practitioner_id !== hp_id){
             return next(new AppError("You are not authorized to do this!", HttpStatus.UNAUTHORIZED));
         }
-        const patient_id = request_session.patient_id;
-        const patient = await Patient.findByPk(patient_id);
-        if(!patient){
-            return next(new AppError("Patient not found!", HttpStatus.NOT_FOUND));
+        if (request_session.status !== "pending") {
+            return next(new AppError("Only pending requests can be declined", HttpStatus.CONFLICT));
         }
-        request_session.status = "rejected";
-        await request_session.save();
-        await mailerService.sendPatientSessionRejection(patient.email, `Cancellation reason: ${reason}`)
-        return responseHandler.success(res, HttpStatus.OK, "Session Request declined successfully!");
 
+        const patient_id = request_session.patient_id;
+        const [patient, hp] = await Promise.all([
+            Patient.findByPk(patient_id),
+            HealthPractitioner.findByPk(hp_id),
+        ]);
+        if (!patient || !hp) return next(new AppError("Health Practitioner or patient not found", HttpStatus.NOT_FOUND));
+
+        const t = await sequelize.transaction();
+        try {
+            // Optimistic guard: still pending & mine
+            const [affected] = await RequestSession.update(
+            { status: "rejected" },
+            {
+                where: { id: request_session_id, health_practitioner_id: hp_id, status: "pending" },
+                transaction: t,
+            }
+            );
+            if (affected === 0) {
+            await t.rollback();
+            return next(new AppError("Request is no longer pending", HttpStatus.CONFLICT));
+            }
+
+            // Free the slot by marking it rejected (pending/accepted are the “blocking” statuses)
+            await AppointmentSlot.update(
+            { status: "rejected" },
+            {
+                where: {
+                request_session_id,
+                status: { [Op.in]: ["pending", "accepted"] },
+                },
+                transaction: t,
+            }
+            );
+
+            await t.commit();
+
+            (async () => {
+                try {
+                  await mailerService.sendPatientSessionRejection(
+                    patient.email,
+                    `Cancellation reason: ${reason || "No reason provided"}`
+                  );
+                } catch { }
+            })();
+            return responseHandler.success(res, HttpStatus.OK, "Session request declined successfully!");
+
+        } catch (err) {
+            await t.rollback();
+            return next(new AppError("Failed to decline session request", HttpStatus.INTERNAL_SERVER_ERROR))
+        }
     })
 
 //This endpoint is responsible for accepting a session request (protect this route with hp role checking middleware)
+// It wraps updating the request session, creating a new session and updating the appointment slot in a db transaction
     public static acceptRequest = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next: NextFunction) =>{
         const hp_id = req.userId;
         const {request_session_id} = req.params;
@@ -45,28 +92,84 @@ export class HpSession{
         if(!patient){
             return next(new AppError("Patient not found!", HttpStatus.NOT_FOUND));
         }
-        request_session.status = "accepted";
-        await request_session.save();
-        const newSession = await Session.create({
-            patient_id: request_session.patient_id,
-            health_practitioner_id: hp_id,
-            patient_symptoms: request_session.patient_symptoms,
-            status: "scheduled",
-            health_practitioner_report: "",
-            diagnosis: "",
-            prescription: "",
-            rating: 0,
-            start_time : request_session.start_time,
-            end_time : request_session.end_time
-        })
-        // const meetingLink = await createDailyMeeting();
-        const meetingLink = createJitsiMeeting();
-        console.log("Jitsi meeting link:", meetingLink);
-        // await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request with has been accepted! Join at the designated time with this link : ${meetingLink}`)
-        await mailerService.sendPatientSessionAcceptance(patient.email, `Your session request with has been accepted! Join at the designated time with this link : ${meetingLink.meetingUrl}`);
-        return responseHandler.success(res, HttpStatus.OK, "Session Request accepted successfully!", newSession);
 
-    })
+        const t = await sequelize.transaction();
+
+        try {
+            // Mark request accepted 
+            const [affected] = await RequestSession.update(
+              { status: "accepted" },
+              {
+                where: { id: request_session_id, health_practitioner_id: hp_id, status: "pending" },
+                transaction: t,
+              }
+            );
+            if (affected === 0) {
+              await t.rollback();
+              return next(new AppError("Request is no longer pending", HttpStatus.CONFLICT));
+            }
+
+            // Mark the linked slot accepted (it was created at request time with status 'pending')
+            const [slotAffected] = await AppointmentSlot.update(
+                { status: "accepted" },
+                {
+                where: {
+                    request_session_id,
+                    hp_id,
+                    status: "pending",
+                    start_ts: { [Op.eq]: request_session.start_time },
+                    end_ts:   { [Op.eq]: request_session.end_time   },
+                },
+                transaction: t,
+                }
+            );
+            // If no slot found, you can choose to error or create one; here we error
+            if (slotAffected === 0) {
+                await t.rollback();
+                return next(new AppError("Associated appointment slot not found or already taken", HttpStatus.CONFLICT));
+            }
+
+            const newSession = await Session.create({
+                patient_id: patient_id,
+                health_practitioner_id: hp_id,
+                patient_symptoms: request_session.patient_symptoms,
+                status: "scheduled",
+                health_practitioner_report: "",
+                diagnosis: "",
+                prescription: "",
+                rating: 0,
+                start_time : request_session.start_time,
+                end_time : request_session.end_time
+            })
+
+            await t.commit();
+
+            (async () => {
+                try {
+                  const meetingLink = createJitsiMeeting(); // or await createDailyMeeting()
+                  await mailerService.sendPatientSessionAcceptance(
+                    patient.email,
+                    `Your session request has been accepted! Join at the designated time with this link: ${meetingLink.meetingUrl}`
+                  );
+                } catch { }
+            })();
+
+            return responseHandler.success(res, HttpStatus.OK, "Session request accepted successfully!", newSession);
+        } catch (err: any) {
+            await t.rollback();
+
+        const pgCode = err?.original?.code;
+        const constraint = err?.original?.constraint;
+        if (pgCode === "23P01" && constraint === "appointment_no_overlap") {
+            return next(new AppError("That slot was just taken. Please pick another time.", HttpStatus.CONFLICT));
+        }
+        if (pgCode === "23514" && constraint === "chk_fixed_length") {
+            return next(new AppError("Invalid slot length; must be exactly 30 minutes.", HttpStatus.BAD_REQUEST));
+        }
+        return next(new AppError("Failed to accept session request", HttpStatus.INTERNAL_SERVER_ERROR));
+        }
+
+    });
 
 
 //This endpoint is responsible for starting a session officially also means kicking the session off by a hp (protect this route with hp role checking middleware)

@@ -19,7 +19,7 @@ hpRouter.post('/forgot-password', HpController.forgotPassword);
 hpRouter.post('/reset-password', HpController.resetPassword);
 
 // For Admin
-// hpRouter.get('/', HpController.getAllPractitioners);
-// hpRouter.get('/:id', HpController.getPractitionerById);
+hpRouter.get('/', HpController.getPractitioners);
+hpRouter.get('/:id', HpController.getPractitionerById);
 
 export default hpRouter;

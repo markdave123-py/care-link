@@ -1,13 +1,16 @@
 import { Op } from 'sequelize';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(isSameOrBefore);
+import * as dayjs from "dayjs";
+import * as utcMod from "dayjs/plugin/utc";
+import * as tzMod from "dayjs/plugin/timezone";
+import * as isBeforeMod from "dayjs/plugin/isSameOrBefore";
 
-import { AppError, HealthPractitioner, WorkingHour, AppointmentSlot } from '../../core';
+const plug = <T>(m: T) => (m as any).default ?? m;
+
+dayjs.extend(plug(utcMod));
+dayjs.extend(plug(tzMod));
+dayjs.extend(plug(isBeforeMod));
+
+import { AppError, HealthPractitioner, WorkingHour, AppointmentSlot, HttpStatus} from '../../core';
 import { getSlotLen } from '../../auth';
 
 type SlotDTO = {
@@ -151,4 +154,47 @@ export async function getHpAvailabilityService(params: {
     to_local: endLocal.format('YYYY-MM-DD'),
     days: results,
   };
+}
+
+const SLOT_MIN = getSlotLen();
+
+// ensure `start` is aligned (e.g., 09:00, 09:30, 10:00, ...)
+export function assertAlignedToSlot(startUtc: dayjs.Dayjs) {
+  const minutes = startUtc.minute();
+  if (minutes % SLOT_MIN !== 0 || startUtc.second() !== 0 || startUtc.millisecond() !== 0) {
+    throw new AppError("Start time must align to 30-minute boundaries", HttpStatus.BAD_REQUEST);
+  }
+}
+
+// verify chosen time sits within HP WorkingHour blocks for that local day
+export async function assertWithinWorkingHours(hp: any, startUtc: dayjs.Dayjs) {
+  const hpTZ: string = hp.timezone || "Africa/Lagos";
+  const local = startUtc.tz(hpTZ);
+  const dow = (local.day() + 6) % 7; // Mon=0...Sun=6
+
+  const blocks = await WorkingHour.findAll({
+    where: { hp_id: hp.id, dow },
+    attributes: ["starts", "ends"],
+  });
+
+  if (!blocks.length) {
+    throw new AppError("Selected time is outside provider working hours", HttpStatus.BAD_REQUEST);
+  }
+
+  const hhmm = (d: dayjs.Dayjs) => d.format("HH:mm");
+  const startHHMM = hhmm(local);
+  const endHHMM = hhmm(local.add(SLOT_MIN, "minute"));
+
+  const inside = blocks.some((b: any) => {
+    // starts/ends are TIME columns like "09:00:00"
+    const [sh, sm] = String(b.starts).split(":").map(Number);
+    const [eh, em] = String(b.ends).split(":").map(Number);
+    const blockStart = local.startOf("day").hour(sh).minute(sm).format("HH:mm");
+    const blockEnd   = local.startOf("day").hour(eh).minute(em).format("HH:mm");
+    return startHHMM >= blockStart && endHHMM <= blockEnd;
+  });
+
+  if (!inside) {
+    throw new AppError("Selected time is outside provider working hours", HttpStatus.BAD_REQUEST);
+  }
 }

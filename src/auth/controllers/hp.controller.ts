@@ -17,7 +17,7 @@ import { buildUrl } from "../utils";
 import { googleHp } from "../config";
 import { requireFields } from "../../common/validation";
 import { processFiles } from "../../common/upload";
-import { HpMapper } from "../mappers/hp.mapper";
+import { HpMapper, HpResponse } from "../mappers/hp.mapper";
 import { PublishToQueue } from "../../common/rabbitmq/producer";
 
 config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
@@ -293,7 +293,7 @@ class HpController {
 
 			const healthPractitioner = await HealthPractitioner.findOne({
 				where: { id: userId },
-				attributes: { exclude: ["password"] },
+				attributes: { exclude: ["password", "refresh_token"] },
 			});
 			if (!healthPractitioner) {
 				return next(
@@ -308,6 +308,28 @@ class HpController {
 			);
 		}
 	);
+
+	static getPractitioners = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const practitioners = await HealthPractitioner.findAll({
+				attributes: {exclude: ["password", "refresh_token"]}
+			})
+
+			if (practitioners.length === 0){
+				return next(
+					new AppError(`Practitioners not found`, 404)
+				);
+			}
+
+			let out: HpResponse[]  = practitioners.map((prac) => HpMapper.hpResponse(prac))
+
+			return Send.success(
+				res,
+				"Health Practitioners",
+				out
+			);
+		}
+	)
 
 	static deletePractitioner = CatchAsync.wrap(
 		async (req: Request, res: Response, next: NextFunction) => {

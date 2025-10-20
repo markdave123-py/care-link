@@ -24,8 +24,8 @@ export class PatientSession {
     }
     const patient = await Patient.findByPk(req.userId);
 
-    const healthPracticioner = await HealthPractitioner.findByPk(hp_id);
-    if (!healthPracticioner) {
+    const healthPractitioner = await HealthPractitioner.findByPk(hp_id);
+    if (!healthPractitioner) {
       return next(new AppError("Health Practitioner not found", HttpStatus.NOT_FOUND));
     }
     if (!patient) {
@@ -46,7 +46,7 @@ export class PatientSession {
     });
 
     await mailerService.sendSessionRequestAlert(
-      healthPracticioner.email, 
+      healthPractitioner.email, 
       patient.firstname,
       time.toString()
     );

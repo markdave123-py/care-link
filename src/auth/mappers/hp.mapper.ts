@@ -1,6 +1,6 @@
 import type { HealthPractitioner } from "../../core";
 
-type HpResponse = {
+export type HpResponse = {
 	id: string,
 	firstname: string,
 	email: string,

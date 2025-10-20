@@ -8,4 +8,4 @@ export const ScheduleRouter = Router();
 
 ScheduleRouter.put('/hp/working-hours',AuthMiddleware.authenticateUser, HpSchedule.upsertSchedule);
 ScheduleRouter.get('/:hp_id/working-hours', HpSchedule.getSchedule);
-ScheduleRouter.get('/:hp_id/get_availability', HpSchedule.getAvailability);
+ScheduleRouter.get('/:hp_id/get_availability', AuthMiddleware.authenticateUser, HpSchedule.getAvailability);

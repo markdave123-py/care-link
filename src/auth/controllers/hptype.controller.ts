@@ -50,6 +50,27 @@ class HpTypeController {
 			)
 		}
 	)
+
+	static getHpType = CatchAsync.wrap(
+		async (req: Request, res: Response, next: NextFunction) => {
+			const { id } = req.params;
+
+			const type = await HPType.findOne({
+				where: {id: id},
+				attributes: {exclude: ['embedding']}
+			});
+
+			if (!type) {
+				return next(new AppError("No Practitioner Type with id", 404));
+			}
+			
+			return Send.success(
+				res,
+				"Health Practitioner Types",
+				type
+			)
+		}
+	)
 }
 
 export default HpTypeController;

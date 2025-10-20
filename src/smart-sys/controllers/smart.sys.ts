@@ -21,5 +21,4 @@ export class SmartSys{
 
         return responseHandler.success(res, HttpStatus.OK, "Health Pratitioners sucessfully retrieved",healthPractitioners)
     })
-     
 }

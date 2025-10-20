@@ -286,4 +286,11 @@ export class HpSession{
         return responseHandler.success(res, HttpStatus.CREATED, "Follow-up session created", followUpSession);
     });
 
+    //To get all sessions for a health practitioner
+    public static getHPSessions = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next: NextFunction) : Promise<void> => {
+        const hp_id = req.userId;
+        const sessions =  await Session.findAll({where: {health_practitioner_id: hp_id}});
+        return responseHandler.success(res, HttpStatus.OK, "Health Practitioner sessions retrieved successfully", sessions);
+    })
+
 }

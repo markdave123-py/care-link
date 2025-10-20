@@ -17,3 +17,6 @@ HpSessRouter.patch("/:request_session_id/decline-request", HpSession.declineRequ
 HpSessRouter.patch("/:sessionId/update-session", HpSession.updateSessionDetails);
 
 HpSessRouter.post("/:parentSessionId/create-followup", HpSession.createFollowUpSession);
+
+//An endpoint to get all sessions for a health practitioner
+HpSessRouter.get("/", HpSession.getHPSessions);

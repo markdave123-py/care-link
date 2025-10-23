@@ -290,6 +290,10 @@ export class HpSession{
     public static getHPSessions = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next: NextFunction) : Promise<void> => {
         const hp_id = req.userId;
         const sessions =  await Session.findAll({where: {health_practitioner_id: hp_id}});
+        if(!sessions){
+            return next(new AppError("No sessions found for this health practitioner!", HttpStatus.NOT_FOUND));
+        }
+        
         return responseHandler.success(res, HttpStatus.OK, "Health Practitioner sessions retrieved successfully", sessions);
     })
 

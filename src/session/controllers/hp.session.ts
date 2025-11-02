@@ -173,12 +173,14 @@ export class HpSession{
 
     public static getRequestsByID = CatchAsync.wrap(
         async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
-          const { hp_id } = req.params;
+            const hp_id = req.userId;
+
+            console.log(hp_id)
       
           const request_sessions = await RequestSession.findAll({
             where: {
-              id: hp_id,
-              status: "pending",
+              health_practitioner_id: hp_id,
+              status: 'pending',
             },
             order: [["createdAt", "DESC"]],
           });

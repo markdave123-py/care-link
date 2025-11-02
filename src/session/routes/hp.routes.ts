@@ -10,6 +10,8 @@ HpSessRouter.post("/:sessionId/start-session", HpSession.startSession);
 
 HpSessRouter.patch("/:sessionId/end-session", HpSession.endSession);
 
+HpSessRouter.get("/:hp_id/request-session", HpSession.getRequestsByID);
+
 HpSessRouter.patch("/:request_session_id/accept-request", HpSession.acceptRequest);
 
 HpSessRouter.patch("/:request_session_id/decline-request", HpSession.declineRequest);

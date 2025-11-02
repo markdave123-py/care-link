@@ -171,6 +171,24 @@ export class HpSession{
 
     });
 
+    public static getRequestsByID = CatchAsync.wrap(
+        async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+          const { hp_id } = req.params;
+      
+          const request_sessions = await RequestSession.findAll({
+            where: {
+              id: hp_id,
+              status: "pending",
+            },
+            order: [["createdAt", "DESC"]],
+          });
+      
+          return res.status(200).json({
+            status: "success",
+            data: { request_sessions },
+          });
+        }
+      );
 
 //This endpoint is responsible for starting a session officially also means kicking the session off by a hp (protect this route with hp role checking middleware)
     public static startSession = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next) =>{

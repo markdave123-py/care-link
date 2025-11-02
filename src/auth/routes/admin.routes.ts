@@ -18,11 +18,18 @@ AdminRouter.post('/forgot-password', AdminController.forgotPassword);
 AdminRouter.post('/reset-password', AdminController.resetPassword);
 AdminRouter.get('/all-patients', AdminController.getAllPatients);
 AdminRouter.get('/all-hp', AdminController.getAllPractitioners);
+AdminRouter.delete('/patient/:id', AdminController.deletePatient);
+AdminRouter.delete('/hp/:id', AdminController.deletePractitioner);
 AdminRouter.get('/patients/search', AdminController.searchPatientByEmailOrName);
 AdminRouter.get('/hp/search', AdminController.searchPractitionerByEmailOrName);
 AdminRouter.get('/:id', AdminController.getAdminById);
 AdminRouter.delete('/:id', AdminController.deleteAdmin);
 AdminRouter.get('/', AdminController.getAllAdmins);
+
+//Session related routes for admin
+AdminRouter.get('/:hp_id/sessions', AdminController.getHPSessions);
+AdminRouter.get('/:patient_id/sessions', AdminController.getPatientSessions);
+AdminRouter.get('/session', AdminController.getSessions);
 
 
 AdminRouter.get('/:id', AdminController.getPatientById);

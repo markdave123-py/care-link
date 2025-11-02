@@ -7,6 +7,7 @@ import {
   InviteAdminToken,
   Patient,
   RefreshToken,
+  Session,
 } from "../../core";
 import type { NextFunction, Request, Response } from "express";
 import * as bcrypt from "bcrypt";
@@ -466,7 +467,7 @@ export class AdminController {
 	async (req: Request, res: Response) => {
 		const { name, email } = req.query;
 
-		if (!name || !email) {
+		if (!name && !email) {
 			throw new AppError(`Input your name or email`, 400);
 		};
 
@@ -474,7 +475,8 @@ export class AdminController {
 			{ where: {
 				[Op.or]: [
 					email ? { email: { [Op.iLike]: `%${email}%` } }: undefined,
-					name ? { name: { [Op.iLike]: `%${name}%` } }: undefined
+					name ? { firstname: { [Op.iLike]: `%${name}%` } }: undefined,
+          name ? { lastname: { [Op.iLike]: `%${name}%` } }: undefined,
 				].filter(Boolean) as WhereOptions<Patient>[],
 			}},
 		);
@@ -494,7 +496,7 @@ export class AdminController {
 	async (req: Request, res: Response) => {
 		const { name, email } = req.query;
 
-		if (!name || !email) {
+		if (!name && !email) {
 			throw new AppError(`Input your name or email`, 400);
 		};
 
@@ -502,7 +504,8 @@ export class AdminController {
 			{ where: {
 				[Op.or]: [
 					email ? { email: { [Op.iLike]: `%${email}%` } }: undefined,
-					name ? { name: { [Op.iLike]: `%${name}%` } }: undefined
+					name ? { firstname: { [Op.iLike]: `%${name}%` } }: undefined,
+          name ? { lastname: { [Op.iLike]: `%${name}%` } }: undefined,
 				].filter(Boolean) as WhereOptions<HealthPractitioner>[],
 			}},
 		);
@@ -516,6 +519,87 @@ export class AdminController {
 			[...hp]
 		)
 	}
+  );
+
+  static deletePatient = CatchAsync.wrap(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const patientId = req.params.id;
+      const patient = await Patient.findOne({
+        where: { id: patientId },
+      });
+      if (!patient) {
+        return next(new AppError(`Patient with ID ${patientId} not found`, 404));
+      }
+      await patient.destroy();
+
+      return Send.success(
+        res,
+        "Patient deleted successfully",
+        { ...patient }
+      );
+    }
+  );
+
+  static deletePractitioner = CatchAsync.wrap(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const practitionerId = req.params.id;
+      const practitioner = await HealthPractitioner.findOne({
+        where: { id: practitionerId },
+      });
+      if (!practitioner) {
+        return next(new AppError(`Health Practitioner with ID ${practitionerId} not found`, 404));
+      }
+      await practitioner.destroy();
+      return Send.success(
+        res,
+        "Health Practitioner deleted successfully",
+        { ...practitioner }
+      );
+    }
+  );
+
+  static getSessions = CatchAsync.wrap(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const sessions = await Session.findAll();
+      if (!sessions) {
+        return next(new AppError("No sessions found", 404));
+      }
+      return Send.success(
+        res,
+        "All sessions retrieved successfully",
+        sessions
+      );
+    }
+  );
+
+  static getHPSessions = CatchAsync.wrap(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const hp_id = req.params.hp_id;
+      const sessions = await Session.findAll({where: {health_practitioner_id: hp_id}});
+      if (!sessions) {
+        return next(new AppError("No sessions found for this health practitioner", 404));
+      }
+      return Send.success(
+        res,
+        "Health Practitioner sessions retrieved successfully",
+        sessions
+      );
+    }
+  );
+
+  static getPatientSessions = CatchAsync.wrap(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const patient_id = req.params.patient_id;
+      const sessions = await Session.findAll({where: {patient_id}});
+      if (!sessions) {
+        return next(new AppError("No sessions found for this patient", 404));
+      }
+      return Send.success(
+        res,
+        "Patient sessions retrieved successfully",
+        sessions
+      );
+    }
   );
 
 }

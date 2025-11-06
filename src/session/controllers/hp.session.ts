@@ -129,30 +129,28 @@ export class HpSession{
                 return next(new AppError("Associated appointment slot not found or already taken", HttpStatus.CONFLICT));
             }
 
-            const newSession = await Session.create({
-                patient_id: patient_id,
-                health_practitioner_id: hp_id,
-                patient_symptoms: request_session.patient_symptoms,
-                status: "scheduled",
-                health_practitioner_report: "",
-                diagnosis: "",
-                prescription: "",
-                rating: 0,
-                start_time : request_session.start_time,
-                end_time : request_session.end_time
-            })
-
             await t.commit();
 
-            (async () => {
-                try {
-                  const meetingLink = createJitsiMeeting(); // or await createDailyMeeting()
-                  await mailerService.sendPatientSessionAcceptance(
-                    patient.email,
-                    `Your session request has been accepted! Join at the designated time with this link: ${meetingLink.meetingUrl}`
-                  );
-                } catch { }
-            })();
+            const meetingLink = createJitsiMeeting();
+
+            await mailerService.sendPatientSessionAcceptance(
+            patient.email,
+            `Your session request has been accepted! Join at the designated time with this link: ${meetingLink.meetingUrl}`
+            );
+
+            const newSession = await Session.create({
+            patient_id: patient_id,
+            health_practitioner_id: hp_id,
+            patient_symptoms: request_session.patient_symptoms,
+            status: "scheduled",
+            health_practitioner_report: "",
+            diagnosis: "",
+            prescription: "",
+            meeting_link: meetingLink.meetingUrl,
+            rating: 0,
+            start_time : request_session.start_time,
+            end_time : request_session.end_time
+            });
 
             return responseHandler.success(res, HttpStatus.OK, "Session request accepted successfully!", newSession);
         } catch (err: any) {
@@ -274,6 +272,7 @@ export class HpSession{
             health_practitioner_report: "",
             diagnosis: "",
             prescription: "",
+            meeting_link: createJitsiMeeting().meetingUrl,
             rating: 0,
             start_time : startDate,
             end_time : endDate

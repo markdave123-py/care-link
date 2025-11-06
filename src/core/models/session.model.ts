@@ -17,7 +17,7 @@ export class Session extends Model<
     declare diagnosis: string;
     declare prescription: string;
     declare rating: number;
-    // declare time: CreationOptional<Date>;
+    declare meeting_link: string;
     declare start_time: CreationOptional<Date>;
     declare end_time: CreationOptional<Date>;
 }
@@ -59,6 +59,10 @@ Session.init(
         },
         rating: {
             type: DataTypes.INTEGER,
+        },
+        meeting_link:{
+            type: DataTypes.STRING,
+            defaultValue: "null"
         },
         // time : DataTypes.DATE,
         start_time : DataTypes.DATE,

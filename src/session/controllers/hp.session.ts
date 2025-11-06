@@ -129,30 +129,28 @@ export class HpSession{
                 return next(new AppError("Associated appointment slot not found or already taken", HttpStatus.CONFLICT));
             }
 
-            const newSession = await Session.create({
-                patient_id: patient_id,
-                health_practitioner_id: hp_id,
-                patient_symptoms: request_session.patient_symptoms,
-                status: "scheduled",
-                health_practitioner_report: "",
-                diagnosis: "",
-                prescription: "",
-                rating: 0,
-                start_time : request_session.start_time,
-                end_time : request_session.end_time
-            })
-
             await t.commit();
 
-            (async () => {
-                try {
-                  const meetingLink = createJitsiMeeting(); // or await createDailyMeeting()
-                  await mailerService.sendPatientSessionAcceptance(
-                    patient.email,
-                    `Your session request has been accepted! Join at the designated time with this link: ${meetingLink.meetingUrl}`
-                  );
-                } catch { }
-            })();
+            const meetingLink = createJitsiMeeting();
+
+            await mailerService.sendPatientSessionAcceptance(
+            patient.email,
+            `Your session request has been accepted! Join at the designated time with this link: ${meetingLink.meetingUrl}`
+            );
+
+            const newSession = await Session.create({
+            patient_id: patient_id,
+            health_practitioner_id: hp_id,
+            patient_symptoms: request_session.patient_symptoms,
+            status: "scheduled",
+            health_practitioner_report: "",
+            diagnosis: "",
+            prescription: "",
+            meeting_link: meetingLink.meetingUrl,
+            rating: 0,
+            start_time : request_session.start_time,
+            end_time : request_session.end_time
+            });
 
             return responseHandler.success(res, HttpStatus.OK, "Session request accepted successfully!", newSession);
         } catch (err: any) {
@@ -171,6 +169,26 @@ export class HpSession{
 
     });
 
+    public static getRequestsByID = CatchAsync.wrap(
+        async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
+            const hp_id = req.userId;
+
+            console.log(hp_id)
+      
+          const request_sessions = await RequestSession.findAll({
+            where: {
+              health_practitioner_id: hp_id,
+              status: 'pending',
+            },
+            order: [["createdAt", "DESC"]],
+          });
+      
+          return res.status(200).json({
+            status: "success",
+            data: { request_sessions },
+          });
+        }
+      );
 
 //This endpoint is responsible for starting a session officially also means kicking the session off by a hp (protect this route with hp role checking middleware)
     public static startSession = CatchAsync.wrap(async(req: AuthenticateRequest, res: Response, next) =>{
@@ -254,6 +272,7 @@ export class HpSession{
             health_practitioner_report: "",
             diagnosis: "",
             prescription: "",
+            meeting_link: createJitsiMeeting().meetingUrl,
             rating: 0,
             start_time : startDate,
             end_time : endDate

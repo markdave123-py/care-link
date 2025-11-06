@@ -11,7 +11,6 @@ export class PublishToQueue {
     static email = async (key: string, data: Data) => { // key --> <domain>.<model>.<action>
         try {
             console.log(`[amqp-producer] Publishing message with key: ${key}`);
-            console.log(`[amqp-producer] Message data:`, JSON.stringify(data, null, 2));
 
             const channel = await Rabbitmq.getChannel();
             const exchange = "email_service";

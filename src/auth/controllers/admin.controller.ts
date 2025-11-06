@@ -100,7 +100,7 @@ export class AdminController {
       newUser.refresh_token = refreshToken;
       await newUser.save();
 
-      const redirectUrl = `https://healthcare-nithub.vercel.app/auth/signup?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+      const redirectUrl = `https://healthcare-nithub.vercel.app/auth/${created ? 'signup' : 'signin'}?accessToken=${accessToken}&refreshToken=${refreshToken}`;
       return res.redirect(redirectUrl);
     } catch (err) {
       console.error("OAuth callback error:", err);

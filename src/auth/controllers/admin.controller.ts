@@ -561,7 +561,7 @@ export class AdminController {
   static getSessions = CatchAsync.wrap(
     async (req: Request, res: Response, next: NextFunction) => {
       const sessions = await Session.findAll();
-      if (!sessions) {
+      if (sessions.length == 0) {
         return next(new AppError("No sessions found", 404));
       }
       return Send.success(

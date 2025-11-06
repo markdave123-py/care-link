@@ -286,6 +286,12 @@ export class AdminController {
         updatedAt: new Date(),
       });
 
+      const accessToken = AccessToken.sign(newAdmin.id);
+      const refreshToken = RefreshToken.sign(newAdmin.id);
+
+      newAdmin.refresh_token = refreshToken;
+      await newAdmin.save();
+
       return Send.success(
         res,
         "Admin created successfully",

@@ -100,15 +100,8 @@ export class AdminController {
       newUser.refresh_token = refreshToken;
       await newUser.save();
 
-      return Send.success(
-        res,
-        created ? "User created successfully" : "User already exists",
-        {
-          ...AdminMapper.adminResponse(newUser),
-          accessToken,
-          refreshToken
-        }
-      );
+      const redirectUrl = `https://healthcare-nithub.vercel.app/auth/${created ? 'signup' : 'signin'}?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+      return res.redirect(redirectUrl);
     } catch (err) {
       console.error("OAuth callback error:", err);
       res.status(500).json({ error: "Internal server error" });
@@ -285,6 +278,12 @@ export class AdminController {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+
+      const accessToken = AccessToken.sign(newAdmin.id);
+      const refreshToken = RefreshToken.sign(newAdmin.id);
+
+      newAdmin.refresh_token = refreshToken;
+      await newAdmin.save();
 
       return Send.success(
         res,

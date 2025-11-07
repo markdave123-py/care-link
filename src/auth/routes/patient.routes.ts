@@ -19,7 +19,6 @@ patientRouter.post('/logout', AuthMiddleware.authenticatePatient, AuthController
 patientRouter.delete('/:id', PatientController.deletePatient);
 
 // For Admin
-// patientRouter.get('/:id', PatientController.getPatientById);
-// patientRouter.get('/', PatientController.getAllPatients);
+patientRouter.get('/:id', PatientController.getPatientById);
 
 export default patientRouter;
